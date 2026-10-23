@@ -1,0 +1,28 @@
+{
+  "number": "singular",
+  "description": "Case assigned by the immediately preceding governor. Each case may override 'number'. The single key in 'expected'/'expected_vocalized' is the case the context must produce.",
+  "references": {
+    "G": "al-Ghalayini, Jamiʿ al-Durus al-ʿArabiyya — huruf al-jarr; inna wa-akhawatuha; kana wa-akhawatuha"
+  },
+  "cases": [
+    {"id": "jarr-01", "category": "preposition → genitive", "preceding": "في", "word": "البيت", "lexicon": "seed", "state": "input", "rule": "context.preposition_genitive", "status": "ok", "ref": "G",
+     "expected_vocalized": {"genitive": ["الْبَيْتِ"]}},
+    {"id": "jarr-02", "category": "preposition → genitive, diptote plural with ال takes kasra", "preceding": "مِنَ", "word": "مَدْرَسَة", "number": "plural", "lexicon": "seed", "state": "definite", "rule": "context.preposition_genitive", "status": "ok", "ref": "G",
+     "expected_vocalized": {"genitive": ["الْمَدَارِسِ"]}},
+    {"id": "jarr-03", "category": "preposition → genitive, sound masculine plural", "preceding": "إلى", "word": "مهندس", "number": "plural", "lexicon": "seed", "state": "definite", "rule": "context.preposition_genitive", "status": "ok", "ref": "G",
+     "expected": {"genitive": ["المهندسين"]}},
+    {"id": "inna-01", "category": "إنّ → accusative", "preceding": "إنّ", "word": "الطالب", "lexicon": "seed", "state": "input", "rule": "context.inna_accusative", "status": "ok", "ref": "G",
+     "expected_vocalized": {"accusative": ["الطَّالِبَ"]}},
+    {"id": "inna-02", "category": "لعلّ → accusative, sound feminine plural takes kasra", "preceding": "لعلّ", "word": "معلمة", "number": "plural", "lexicon": "seed", "state": "definite", "rule": "context.inna_accusative", "status": "ok", "ref": "G",
+     "expected_vocalized": {"accusative": ["الْمُعَلِّمَاتِ"]}},
+    {"id": "inna-03", "category": "لكنّ with shadda → accusative", "preceding": "لكنّ", "word": "كتاب", "number": "dual", "lexicon": "seed", "state": "definite", "rule": "context.inna_accusative", "status": "ok", "ref": "G",
+     "expected": {"accusative": ["الكتابين"]}},
+    {"id": "kana-01", "category": "كان → nominative subject, dual", "preceding": "كان", "word": "الكتاب", "number": "dual", "lexicon": "seed", "state": "input", "rule": "context.kana_nominative", "status": "ok", "ref": "G",
+     "expected": {"nominative": ["الكتابان"]}},
+    {"id": "kana-02", "category": "ليس → nominative subject, manqus plural", "preceding": "ليس", "word": "محامي", "number": "plural", "lexicon": "seed", "state": "indefinite", "rule": "context.kana_nominative", "status": "ok", "ref": "G",
+     "expected": {"nominative": ["محامون"]}},
+    {"id": "unres-01", "category": "إن without shadda is ambiguous (إنْ)", "preceding": "إن", "word": "الطالب", "lexicon": "seed", "state": "input", "status": "error", "ref": "G"},
+    {"id": "unres-02", "category": "لكن without shadda may be the light conjunction", "preceding": "لكن", "word": "الطالب", "lexicon": "seed", "state": "input", "status": "error", "ref": "G"},
+    {"id": "unres-03", "category": "no recognised governor", "preceding": "الطالب", "word": "مجتهد", "lexicon": "none", "state": "indefinite", "status": "error", "ref": "G"}
+  ]
+}

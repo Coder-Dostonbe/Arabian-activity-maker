@@ -1,0 +1,41 @@
+# --- Python ---
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+*.spec
+
+# --- Node / Vite ---
+node_modules/
+desktop/dist/
+npm-debug.log*
+
+# --- Tauri / Rust ---
+desktop/src-tauri/target/
+desktop/src-tauri/gen/
+# Built by desktop/scripts/build-sidecar.ps1; never commit binaries.
+desktop/src-tauri/binaries/
+desktop/build/
+
+# --- Secrets: never commit ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.keystore
+id_rsa*
+id_ed25519*
+secrets/
+credentials*.json
+
+# --- OS / editor ---
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

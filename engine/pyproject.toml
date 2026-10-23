@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arabmorph"
+version = "0.2.0"
+description = "Framework-independent Arabic morphology engine for ArabMorph AI"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "build>=1"]
+
+[project.scripts]
+arabmorph = "arabmorph.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"arabmorph.data" = ["*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

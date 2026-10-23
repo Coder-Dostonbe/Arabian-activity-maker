@@ -1,0 +1,45 @@
+{
+  "number": "singular",
+  "description": "Curated singular declension corpus: triptotes, diptotes, manqus, maqsur, tanween alif orthography.",
+  "references": {
+    "G": "al-Ghalayini, Jamiʿ al-Durus al-ʿArabiyya — iʿrab al-ism; al-mamnuʿ min al-sarf",
+    "H": "Standard Arabic orthography (tanween alif); citation to be confirmed"
+  },
+  "cases": [
+    {"id": "tri-01", "category": "triptote, indefinite", "word": "كتاب", "lexicon": "seed", "state": "indefinite", "rule": "decl.triptote", "status": "ok", "ref": "G",
+     "expected": {"nominative": ["كتاب"], "accusative": ["كتابا"], "genitive": ["كتاب"]},
+     "expected_vocalized": {"nominative": ["كِتَابٌ"], "accusative": ["كِتَابًا"], "genitive": ["كِتَابٍ"]}},
+    {"id": "tri-02", "category": "tanween alif", "word": "قلم", "lexicon": "seed", "state": "indefinite", "rule": "decl.tanween_alif", "status": "ok", "ref": "H",
+     "expected_vocalized": {"accusative": ["قَلَمًا"]}},
+    {"id": "tri-03", "category": "triptote, definite", "word": "كتاب", "lexicon": "seed", "state": "definite", "rule": "decl.triptote", "status": "ok", "ref": "G",
+     "expected_vocalized": {"nominative": ["الْكِتَابُ"], "accusative": ["الْكِتَابَ"], "genitive": ["الْكِتَابِ"]}},
+    {"id": "tri-04", "category": "triptote, construct", "word": "كتاب", "lexicon": "seed", "state": "construct", "rule": "decl.triptote", "status": "ok", "ref": "G",
+     "expected_vocalized": {"nominative": ["كِتَابُ"], "accusative": ["كِتَابَ"], "genitive": ["كِتَابِ"]}},
+    {"id": "tri-05", "category": "no tanween alif after ة", "word": "شجرة", "lexicon": "seed", "state": "indefinite", "rule": "decl.tanween_alif_omitted", "status": "ok", "ref": "H",
+     "expected_vocalized": {"accusative": ["شَجَرَةً"]}},
+    {"id": "tri-06", "category": "no tanween alif after ـاء", "word": "سماء", "lexicon": "seed", "state": "indefinite", "rule": "decl.tanween_alif_omitted", "status": "ok", "ref": "H",
+     "expected_vocalized": {"accusative": ["سَمَاءً"]}},
+    {"id": "tri-07", "category": "no tanween alif after أ", "word": "خطأ", "lexicon": "none", "state": "indefinite", "rule": "decl.tanween_alif_omitted", "status": "ok", "ref": "H",
+     "expected": {"accusative": ["خطأ"]}},
+
+    {"id": "dip-01", "category": "diptote proper name", "word": "أحمد", "lexicon": "seed", "state": "indefinite", "rule": "decl.diptote", "status": "ok", "ref": "G",
+     "expected_vocalized": {"nominative": ["أَحْمَدُ"], "accusative": ["أَحْمَدَ"], "genitive": ["أَحْمَدَ"]}},
+    {"id": "dip-02", "category": "diptote: feminine alif mamduda", "word": "صحراء", "lexicon": "seed", "state": "indefinite", "rule": "decl.diptote", "status": "ok", "ref": "G",
+     "expected_vocalized": {"nominative": ["صَحْرَاءُ"], "genitive": ["صَحْرَاءَ"]}},
+    {"id": "dip-03", "category": "diptote with ال takes kasra", "word": "صحراء", "lexicon": "seed", "state": "definite", "rule": "decl.diptote_kasra_when_definite", "status": "ok", "ref": "G",
+     "expected_vocalized": {"genitive": ["الصَّحْرَاءِ"]}},
+    {"id": "dip-04", "category": "mamdud, hamza type unknown", "word": "صحراء", "lexicon": "none", "state": "indefinite", "rule": "decl.diptote", "status": "ambiguous", "ref": "G",
+     "expected": {"nominative": ["صحراء"]}},
+
+    {"id": "manqus-01", "category": "manqus, indefinite", "word": "قاض", "lexicon": "seed", "state": "indefinite", "rule": "decl.manqus", "status": "ok", "ref": "G",
+     "expected": {"nominative": ["قاض"], "accusative": ["قاضيا"], "genitive": ["قاض"]},
+     "expected_vocalized": {"nominative": ["قَاضٍ"], "accusative": ["قَاضِيًا"], "genitive": ["قَاضٍ"]}},
+    {"id": "manqus-02", "category": "manqus, definite", "word": "القاضي", "lexicon": "seed", "state": "input", "rule": "decl.manqus", "status": "ok", "ref": "G",
+     "expected_vocalized": {"nominative": ["الْقَاضِي"], "accusative": ["الْقَاضِيَ"], "genitive": ["الْقَاضِي"]}},
+
+    {"id": "maqsur-01", "category": "maqsur, indefinite", "word": "فتى", "lexicon": "seed", "state": "indefinite", "rule": "decl.maqsur", "status": "ok", "ref": "G",
+     "expected_vocalized": {"nominative": ["فَتًى"], "accusative": ["فَتًى"], "genitive": ["فَتًى"]}},
+    {"id": "maqsur-02", "category": "maqsur, definite", "word": "مستشفى", "lexicon": "seed", "state": "definite", "rule": "decl.maqsur", "status": "ok", "ref": "G",
+     "expected_vocalized": {"nominative": ["الْمُسْتَشْفَى"], "genitive": ["الْمُسْتَشْفَى"]}}
+  ]
+}
