@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Main window: core APIs only. The engine is reached through the app's own engine_call command.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}
