@@ -4,35 +4,7 @@ import { invoke, isTauri } from "@tauri-apps/api/core";
 export type CaseName = "nominative" | "accusative" | "genitive";
 export type NumberName = "singular" | "dual" | "plural";
 export type PluralKind = "sound_masculine" | "sound_feminine" | "broken";
-export type Status = "ok" | "ambiguous" | "error";
 export type StateName = "indefinite" | "definite" | "construct";
-
-export interface GeneratedForm {
-  text: string;
-  vocalized: string;
-  number: NumberName;
-  case: CaseName;
-  definite: boolean;
-  construct: boolean;
-  rules: string[];
-  source: "rule" | "lexicon" | "heuristic" | "asserted";
-  confidence: number;
-  condition: string | null;
-  warnings: string[];
-  kind: PluralKind | null;
-  diptote: boolean | null;
-}
-
-export interface GenerationResult {
-  input: string;
-  status: Status;
-  forms: GeneratedForm[];
-  warnings: string[];
-  errors: string[];
-  assumptions: string[];
-}
-
-export type Paradigm = Record<StateName, Record<CaseName, GenerationResult>>;
 
 export interface Rule {
   id: string;
@@ -67,14 +39,37 @@ export interface EngineVersion {
   lexicon_sources: string[];
 }
 
-export interface GenerateParams {
-  word: string;
+/** One row read from a teacher's file. `options` are wrong answers only. */
+export interface RawItem {
+  prompt: string;
+  answer: string;
+  note: string;
+  options: string[];
+}
+
+export interface ImportResult {
+  sets: { name: string; items: RawItem[] }[];
+  warnings: string[];
+}
+
+export interface BuiltItem {
+  prompt: string;
+  answer: string;
+  options: string[];
+  uncertain: boolean;
+  warnings: string[];
+}
+
+export interface BuildResult {
+  items: BuiltItem[];
+  skipped: { word: string; reason: "error" | "ambiguous"; detail: string }[];
+}
+
+export interface BuildParams {
+  words: string[];
   number: NumberName;
-  case?: CaseName;
-  definite?: boolean | null;
-  construct?: boolean;
-  kind?: PluralKind | null;
-  after?: string | null;
+  case: CaseName;
+  state: StateName;
 }
 
 interface Reply<T> {
@@ -82,25 +77,28 @@ interface Reply<T> {
   ok: boolean;
   result?: T;
   error?: string;
+  code?: string;
 }
 
 let nextId = 1;
 
-export class EngineError extends Error {}
+export class EngineError extends Error {
+  constructor(message: string, public code = "bad_request") {
+    super(message);
+  }
+}
 
 async function call<T>(op: string, params: object = {}): Promise<T> {
-  if (!isTauri()) {
-    throw new EngineError("Dvigatel faqat ArabMorph AI desktop ilovasi ichida ishlaydi.");
-  }
+  if (!isTauri()) throw new EngineError("desktop only", "desktop_only");
   const reply = await invoke<Reply<T>>("engine_call", { request: { id: nextId++, op, params } });
-  if (!reply.ok) throw new EngineError(reply.error ?? "Noma'lum xato");
+  if (!reply.ok) throw new EngineError(reply.error ?? "", reply.code);
   return reply.result as T;
 }
 
 export const engine = {
   version: () => call<EngineVersion>("version"),
-  generate: (p: GenerateParams) => call<GenerationResult>("generate", p),
-  paradigm: (p: Pick<GenerateParams, "word" | "number" | "kind">) => call<Paradigm>("paradigm", p),
   rules: () => call<Rule[]>("rules"),
   lexicon: () => call<LexiconEntry[]>("lexicon"),
+  importFile: (name: string, data: string) => call<ImportResult>("import_file", { name, data }),
+  buildItems: (p: BuildParams) => call<BuildResult>("build_items", p),
 };

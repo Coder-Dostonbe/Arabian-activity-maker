@@ -1,40 +1,31 @@
 <script setup lang="ts">
+import { useI18n } from "../i18n";
 import { useEngineStore } from "../stores/engine";
+
 const store = useEngineStore();
+const m = useI18n();
 </script>
 
 <template>
   <section class="about">
-    <h1>Dastur haqida</h1>
+    <h1>{{ m.about.title }}</h1>
     <div class="panel">
-      <h2>ArabMorph AI — desktop (sinov versiyasi)</h2>
+      <h2>{{ m.about.heading }}</h2>
       <p v-if="store.version">
-        Dvigatel v{{ store.version.engine }} · {{ store.version.rules }} qoida · {{ store.version.lexicon_entries }} lug'at yozuvi
-        ({{ store.version.lexicon_sources.join(", ") }})
+        {{ m.about.engine(store.version.engine, store.version.rules, store.version.lexicon_entries, store.version.lexicon_sources.join(", ")) }}
       </p>
-      <p>
-        Barcha hisob-kitob shu kompyuterda bajariladi. Dastur internetga ulanmaydi, tashqi sun'iy intellekt
-        xizmatidan foydalanmaydi va hech qanday API kalitini talab qilmaydi.
-      </p>
+      <p>{{ m.about.privacy }}</p>
     </div>
     <div class="panel">
-      <h2>Hozir nima bor</h2>
+      <h2>{{ m.about.whatTitle }}</h2>
       <ul>
-        <li>Birlik i'robi: munsarif, mamnu' min as-sarf, manqus, maqsur.</li>
-        <li>Ikkilik: barcha kelishiklar, ال va izofa holatlari, maqsur/manqus/mamdud va hamza imlosi.</li>
-        <li>Ko'plik: muzakkar solim, muannas solim, siniq ko'plik (faqat lug'atdan).</li>
-        <li>Kelishikni oldingi so'zdan aniqlash: harflar jarr, إنّ va كان guruhlari.</li>
+        <li v-for="line in m.about.what" :key="line">{{ line }}</li>
       </ul>
     </div>
     <div class="panel">
-      <h2>Cheklovlar</h2>
+      <h2>{{ m.about.limitsTitle }}</h2>
       <ul>
-        <li>Qoidalar va lug'at yozuvlari hali arab tili mutaxassisi tomonidan tekshirilmagan.</li>
-        <li>Lug'atda 41 ta so'z bor; lug'atda yo'q so'zlar uchun siniq ko'plik yasalmaydi.</li>
-        <li>Kontekst faqat bitta oldingi so'z bo'yicha; to'liq gap tahlili hali yo'q.</li>
-        <li>Qo'shimcha harflar (بالكتاب، كتابه) va "besh ism" (أب، أخ…) qo'llab-quvvatlanmaydi.</li>
-        <li>Ishonch foizlari qo'lda belgilangan; ular ehtimollik emas, o'qilishlarni tartiblash uchun.</li>
-        <li>Dvigatel izohlari hozircha ingliz va arab tillarida.</li>
+        <li v-for="line in m.about.limits" :key="line">{{ line }}</li>
       </ul>
     </div>
   </section>

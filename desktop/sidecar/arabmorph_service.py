@@ -12,6 +12,8 @@ Every parameter is validated here; the UI is not trusted to send valid input.
 
 from __future__ import annotations
 
+import base64
+import binascii
 import json
 import sys
 
@@ -27,11 +29,17 @@ from arabmorph import (
 )
 from arabmorph.pipeline import default_lexicon
 
+import activity
+import importers
+
 MAX_WORD = 64
+MAX_NAME = 260
 
 
 class BadRequest(ValueError):
-    pass
+    def __init__(self, message: str, code: str = "bad_request"):
+        super().__init__(message)
+        self.code = code
 
 
 def _word(params: dict, key: str = "word", required: bool = True) -> str | None:
@@ -122,12 +130,49 @@ def op_lexicon(_params: dict) -> list:
     return out
 
 
+def op_import_file(params: dict) -> dict:
+    name = params.get("name")
+    data = params.get("data")
+    if not isinstance(name, str) or not name or len(name) > MAX_NAME:
+        raise BadRequest(f"'name' must be a file name of at most {MAX_NAME} characters")
+    if not isinstance(data, str) or len(data) > (importers.MAX_FILE_BYTES * 4) // 3 + 4:
+        raise BadRequest("'data' must be base64 file content within the size limit", "too_large")
+    try:
+        raw = base64.b64decode(data, validate=True)
+    except (binascii.Error, ValueError):
+        raise BadRequest("'data' is not valid base64") from None
+    try:
+        return importers.import_file(name, raw)
+    except importers.FileImportError as exc:
+        raise BadRequest(str(exc), exc.code) from None
+
+
+def op_build_items(params: dict) -> dict:
+    words = params.get("words")
+    if not isinstance(words, list) or not words or len(words) > activity.MAX_WORDS:
+        raise BadRequest(f"'words' must be a list of 1 to {activity.MAX_WORDS} words")
+    for w in words:
+        if not isinstance(w, str) or len(w) > MAX_WORD:
+            raise BadRequest(f"every word must be a string of at most {MAX_WORD} characters")
+    state = params.get("state", "indefinite")
+    if state not in activity.STATES:
+        raise BadRequest(f"invalid 'state': {state!r}")
+    return activity.build_items(
+        words,
+        _enum(params, "number", Number, "dual"),
+        _enum(params, "case", Case, "nominative"),
+        state,
+    )
+
+
 OPS = {
     "version": op_version,
     "generate": op_generate,
     "paradigm": op_paradigm,
     "rules": op_rules,
     "lexicon": op_lexicon,
+    "import_file": op_import_file,
+    "build_items": op_build_items,
 }
 
 
@@ -149,7 +194,7 @@ def handle(line: str) -> dict:
     try:
         return {"id": rid, "ok": True, "result": op(params)}
     except BadRequest as exc:
-        return {"id": rid, "ok": False, "error": str(exc)}
+        return {"id": rid, "ok": False, "error": str(exc), "code": exc.code}
     except Exception as exc:  # never crash the service on one bad request
         return {"id": rid, "ok": False, "error": f"internal error: {type(exc).__name__}"}
 

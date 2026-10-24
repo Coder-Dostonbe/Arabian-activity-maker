@@ -10,7 +10,7 @@ the knowledge base and the AI layer will be built on top of it in later phases.
 | ----- | ----- | ------ |
 | 1 — Foundation | Repo layout, engine package, normalisation, first dual rules, tests | **Done** (pending review, AM-1) |
 | 2 — Linguistic engine | Declension, sound + broken plurals, exceptions, governor-based case | **Done** (pending review, AM-2) |
-| 8 (early) — Desktop | Windows app (Tauri + Vue) over the offline engine, NSIS installer | **Preview** — see `desktop/` |
+| 8 (early) — Desktop | Windows classroom app (Tauri + Vue): timed activity, timed test, word sets from Word/Excel/txt, engine + optional Claude assistant, UZ/AR/RU/EN interface | **Preview v0.3.0** — see `desktop/` |
 | 3–10 | Database, API, web frontend, documents, AI agent, sync, education, production | Not started |
 
 ## Repository layout
@@ -49,8 +49,11 @@ arabmorph-ai/
 
 ## Windows app
 
-The preview desktop app runs fully offline: no network, no API keys. To build
-the installer, see [`desktop/README.md`](desktop/README.md).
+The desktop app is a classroom tool for Arabic lessons: a timed word activity,
+a timed whole-class test, and word sets imported from Word, Excel or text
+files. Everything runs offline except the optional Claude assistant, which uses
+the teacher's own API key. To build the installer, see
+[`desktop/README.md`](desktop/README.md).
 
 ## Setup
 

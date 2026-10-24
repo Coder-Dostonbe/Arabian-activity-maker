@@ -1,0 +1,7 @@
+# ArabMorph AI — namuna fayl. Ustunlar: so'z | javob | izoh | noto'g'ri variantlar
+So'z | Javob | Izoh | Variant 1 | Variant 2 | Variant 3
+كتاب | كِتَابَانِ | Ikkilik · Raf' | كِتَابَيْنِ | كِتَابَا | كُتُبٌ
+شجرة | شَجَرَتَانِ | Ikkilik · Raf' | شَجَرَتَيْنِ | شَجَرَتَا | أَشْجَارٌ
+عصا | عَصَوَانِ | Ikkilik · Raf' | عَصَيَانِ | عَصَوَيْنِ | عِصِيٌّ
+مستشفى | مُسْتَشْفَيَانِ | Ikkilik · Raf' | مُسْتَشْفَوَانِ | مُسْتَشْفَيَيْنِ | مُسْتَشْفَيَاتٌ
+قاض | قَاضِيَانِ | Ikkilik · Raf' | قَاضَانِ | قَاضِيَيْنِ | قُضَاةٌ

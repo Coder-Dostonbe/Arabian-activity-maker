@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import type { LexiconEntry } from "../engine";
-import { finalClassLabel, genderLabel, kindLabel, posLabel } from "../labels";
+import { useI18n } from "../i18n";
 import { useEngineStore } from "../stores/engine";
 
 const store = useEngineStore();
+const m = useI18n();
 const entries = ref<LexiconEntry[]>([]);
 const query = ref("");
 const failure = ref<string | null>(null);
@@ -29,38 +30,38 @@ onMounted(async () => {
 
 <template>
   <section>
-    <h1>Lug'at</h1>
-    <p class="muted">
-      Qoidalar imlodan aniqlay olmaydigan ma'lumotlar: alifning asli, hamza turi, mamnu' min as-sarf va ko'plik turlari.
-      Barcha yozuvlar hali mutaxassis tomonidan tekshirilmagan.
-    </p>
-    <input v-model="query" type="search" class="search" placeholder="Qidirish: arabcha yoki inglizcha ma'no…" aria-label="Lug'atdan qidirish" />
+    <h1>{{ m.lexicon.title }}</h1>
+    <p class="muted">{{ m.lexicon.intro }}</p>
+    <input v-model="query" type="search" class="search" :placeholder="m.lexicon.search" :aria-label="m.lexicon.search" />
     <div v-if="failure" class="notice err">{{ failure }}</div>
     <table v-else class="panel lex">
       <thead>
-        <tr><th>So'z</th><th>Ma'nosi</th><th>Turkum</th><th>Oxiri</th><th>Ko'plik</th><th>Holat</th></tr>
+        <tr>
+          <th>{{ m.lexicon.cols.word }}</th><th>{{ m.lexicon.cols.meaning }}</th><th>{{ m.lexicon.cols.pos }}</th>
+          <th>{{ m.lexicon.cols.ending }}</th><th>{{ m.lexicon.cols.plural }}</th><th>{{ m.lexicon.cols.status }}</th>
+        </tr>
       </thead>
       <tbody>
         <tr v-for="e in filtered" :key="e.id">
           <td class="ar lemma" lang="ar">{{ e.lemma }}</td>
-          <td>{{ e.gloss_en }}<div class="small muted">{{ genderLabel[e.gender] }}</div></td>
-          <td>{{ posLabel[e.pos] ?? e.pos }}</td>
+          <td>{{ e.gloss_en }}<div class="small muted">{{ m.grammar.gender[e.gender] }}</div></td>
+          <td>{{ m.grammar.pos[e.pos] ?? e.pos }}</td>
           <td>
-            {{ finalClassLabel[e.final_class] ?? e.final_class }}
-            <div v-if="e.alif_origin" class="small muted">alif asli: {{ e.alif_origin === "waw" ? "و" : "ي" }}</div>
-            <div v-if="e.hamza_type" class="small muted">hamza: {{ e.hamza_type }}</div>
-            <div v-if="e.diptote" class="small muted">mamnu' min as-sarf</div>
+            {{ m.grammar.finalClass[e.final_class] ?? e.final_class }}
+            <div v-if="e.alif_origin" class="small muted">{{ m.lexicon.alifOrigin }}: {{ e.alif_origin === "waw" ? "و" : "ي" }}</div>
+            <div v-if="e.hamza_type" class="small muted">{{ m.lexicon.hamza }}: {{ e.hamza_type }}</div>
+            <div v-if="e.diptote" class="small muted">{{ m.lexicon.diptote }}</div>
           </td>
           <td>
             <div v-for="(p, i) in e.plurals" :key="i">
               <span v-if="p.form" class="ar plural" lang="ar">{{ p.form }}</span>
-              <span class="small muted"> {{ kindLabel[p.kind] }}</span>
+              <span class="small muted"> {{ m.grammar.kind[p.kind] }}</span>
             </div>
             <span v-if="!e.plurals.length" class="small muted">—</span>
           </td>
-          <td><span class="badge" :class="e.verified ? 'ok' : 'warn'">{{ e.verified ? "Tekshirilgan" : "Tekshirilmagan" }}</span></td>
+          <td><span class="badge" :class="e.verified ? 'ok' : 'warn'">{{ e.verified ? m.lexicon.verified : m.lexicon.unverified }}</span></td>
         </tr>
-        <tr v-if="!filtered.length"><td colspan="6" class="muted">Hech narsa topilmadi.</td></tr>
+        <tr v-if="!filtered.length"><td colspan="6" class="muted">{{ m.lexicon.nothing }}</td></tr>
       </tbody>
     </table>
   </section>
