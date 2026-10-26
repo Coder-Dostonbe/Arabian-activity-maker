@@ -13,6 +13,7 @@
   --warn-soft: #fbf0d9;
   --err: #a12f2f;
   --err-soft: #f8e3e3;
+  --on-accent: #ffffff; /* text on accent / ok / err buttons */
   --radius: 8px;
   --font-ui: "Segoe UI", system-ui, sans-serif;
   /* Windows ships these; no network fonts — the app must work offline. */
@@ -20,8 +21,9 @@
   color-scheme: light;
 }
 
+/* Night palette: follows Windows unless the teacher picks day or night in the sidebar (theme.ts). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #15171a;
     --surface: #1d2024;
     --surface-2: #25292e;
@@ -36,8 +38,28 @@
     --warn-soft: #3a2f17;
     --err: #ec8a8a;
     --err-soft: #3a1f1f;
+    --on-accent: #0f1a19;
     color-scheme: dark;
   }
+}
+
+:root[data-theme="dark"] {
+  --bg: #15171a;
+  --surface: #1d2024;
+  --surface-2: #25292e;
+  --border: #353a40;
+  --text: #e8e6e1;
+  --muted: #a0a4a8;
+  --accent: #6fc2b9;
+  --accent-soft: #1f3533;
+  --ok: #7cc98f;
+  --ok-soft: #1e3324;
+  --warn: #e2b55b;
+  --warn-soft: #3a2f17;
+  --err: #ec8a8a;
+  --err-soft: #3a1f1f;
+  --on-accent: #0f1a19;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -80,12 +102,12 @@ button {
   padding: 6px 12px;
 }
 button:hover { background: var(--surface-2); }
-button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
 button.primary:hover { filter: brightness(1.08); }
 button:disabled { opacity: .55; cursor: default; }
 button.big { font-size: 20px; padding: 12px 28px; border-radius: 10px; }
-button.ok { background: var(--ok); border-color: var(--ok); color: #fff; font-weight: 600; }
-button.bad { background: var(--err); border-color: var(--err); color: #fff; font-weight: 600; }
+button.ok { background: var(--ok); border-color: var(--ok); color: var(--on-accent); font-weight: 600; }
+button.bad { background: var(--err); border-color: var(--err); color: var(--on-accent); font-weight: 600; }
 button.ok:hover, button.bad:hover { filter: brightness(1.08); }
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

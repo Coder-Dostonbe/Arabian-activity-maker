@@ -5,9 +5,11 @@ sheet). Only the standard library is used - .docx and .xlsx are zip archives of
 XML. Files are untrusted input: sizes are capped and XML carrying a DOCTYPE is
 refused, so entity-expansion tricks never reach the parser.
 
-Columns are found from a header row (So'z / Javob / Izoh / Variant…, in Uzbek,
-Russian, English or Arabic). Without a header the order is: prompt, answer,
-then wrong options.
+Columns are found from a header row (So'z / Javob / Tarjima / Izoh / Ko'pligi /
+Variant…, in Uzbek, Russian, English or Arabic). Without a header the order is:
+prompt, answer, then wrong options - unless the row mixes Arabic and Uzbek, in
+which case `vocab` sorts the pieces by script. Plurals and duals written beside
+a word become items of their own (see `vocab`).
 """
 
 from __future__ import annotations
@@ -19,6 +21,8 @@ import re
 import zipfile
 import xml.etree.ElementTree as ET
 from pathlib import PurePath
+
+import vocab
 
 MAX_FILE_BYTES = 5 * 1024 * 1024
 MAX_MEMBER_BYTES = 30 * 1024 * 1024
@@ -52,10 +56,18 @@ _HEADERS = {
         "جواب", "الجواب", "إجابة", "الإجابة", "اجابة", "الاجابة", "الإجابةالصحيحة", "المثنى", "الجمع",
     },
     "note": {
-        "izoh", "tarjima", "manosi", "mano", "note", "translation", "meaning", "hint",
-        "примечание", "перевод", "подсказка", "значение", "изоҳ", "таржима",
-        "ملاحظة", "ترجمة", "الترجمة", "المعنى", "تلميح",
+        "izoh", "note", "hint", "примечание", "подсказка", "изоҳ", "ملاحظة", "تلميح",
     },
+    "translation": {
+        "tarjima", "tarjimasi", "manosi", "mano", "uzbekcha", "ozbekcha", "translation", "meaning",
+        "перевод", "значение", "таржима", "маъноси", "ўзбекча", "ترجمة", "الترجمة", "المعنى",
+    },
+    # A plural / dual column next to the word: each cell becomes an item of its own.
+    "plural": {
+        "koplik", "kopligi", "jam", "jami", "plural", "множественное", "множественноечисло", "мнч",
+        "кўплик", "кўплиги",
+    },
+    "dual": {"ikkilik", "ikkiligi", "dual", "двойственное", "двойственноечисло", "иккилик", "иккилиги"},
 }
 _OPTION_PREFIXES = ("variant", "option", "choice", "wrong", "notogri", "вариант", "خيار", "الخيار", "بديل")
 _NOISE = re.compile(r"[\s'’ʻʼ`\"_.:#№()\-\d]+")
@@ -106,8 +118,14 @@ def _items(rows: list[list[str]], warnings: set[str]) -> list[dict]:
             roles[0] = "prompt"  # e.g. an unnamed first column before "Javob"
     items = []
     for row in rows:
-        fields = {"prompt": "", "answer": "", "note": ""}
+        if roles is None:
+            mixed = vocab.split_row([_clip(c, warnings) for c in row])
+            if mixed is not None:
+                items.extend(_dedupe(i) for i in mixed)
+                continue
+        fields = {"prompt": "", "answer": "", "note": "", "translation": ""}
         options: list[str] = []
+        forms: list[dict] = []
         for i, cell in enumerate(row):
             role = roles.get(i) if roles is not None else ("prompt", "answer")[i] if i < 2 else "option"
             value = _clip(cell, warnings)
@@ -115,13 +133,19 @@ def _items(rows: list[list[str]], warnings: set[str]) -> list[dict]:
                 continue
             if role == "option":
                 options.append(value)
+            elif role in ("plural", "dual"):
+                forms.append({"kind": role, "text": value, "certain": True})
             elif not fields[role]:
                 fields[role] = value
         if not fields["prompt"]:
             continue
-        options = [o for o in dict.fromkeys(options) if o != fields["answer"]][:MAX_OPTIONS]
-        items.append({**fields, "options": options})
+        items.extend(_dedupe(i) for i in vocab.expand(fields, options, forms))
     return items
+
+
+def _dedupe(item: dict) -> dict:
+    item["options"] = [o for o in dict.fromkeys(item["options"]) if o != item["answer"]][:MAX_OPTIONS]
+    return item
 
 
 # --- plain text ---------------------------------------------------------------

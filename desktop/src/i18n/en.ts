@@ -6,6 +6,11 @@ export const en: Messages = {
 
   app: { tagline: "For Arabic lessons" },
 
+  theme: {
+    label: "Appearance",
+    names: { light: "Day", dark: "Night", system: "Auto" },
+  },
+
   nav: {
     activity: "Activity",
     test: "Test",
@@ -59,7 +64,12 @@ export const en: Messages = {
       "Approved words appear one at a time. Each gets the set amount of time; when it runs out, the next word appears automatically. If the class finds the answer early or gets it wrong, press a button.",
     perWord: "Time per word",
     reveal: "Briefly show the correct answer afterwards",
-    keys: "Keys: 1 — correct · 2 — wrong · Space — pause · Esc — stop",
+    showAnswer: "Show the answer",
+    direction: "Direction",
+    directions: { ar_uz: "Arabic → Uzbek", uz_ar: "Uzbek → Arabic", word_answer: "Word → answer" },
+    noTranslations: "The approved rows of this set have no translation. Fill in the “Translation” column or choose “Word → answer”.",
+    withoutTranslation: (n) => `${n} ${n === 1 ? "row has" : "rows have"} no translation and ${n === 1 ? "is" : "are"} not shown in this direction.`,
+    keys: "Keys: 1 — correct · 2 — wrong · 3 — answer · Space — pause · Esc — stop",
     progress: (i, n) => `${i} / ${n}`,
     finished: "Activity finished",
     mistakes: "Words that were wrong or unanswered",
@@ -86,8 +96,8 @@ export const en: Messages = {
     unanswered: "Unanswered",
     review: "By question",
     keys: "Keys: 1–4 — option · Enter — next · Space — pause",
-    noAnswers: "The approved rows of this set have no answers. A test needs an “Answer” column.",
-    withoutAnswer: (n) => `${n} ${n === 1 ? "row has" : "rows have"} no answer and ${n === 1 ? "was" : "were"} left out.`,
+    noAnswers: "No questions could be made from the approved rows of this set: a test needs an answer or a translation.",
+    withoutAnswer: (n) => `${n} ${n === 1 ? "row has" : "rows have"} neither an answer nor a translation and ${n === 1 ? "was" : "were"} left out.`,
   },
 
   sets: {
@@ -109,6 +119,8 @@ export const en: Messages = {
     noItems: "This set has no rows yet.",
     approved: "Approved",
     prompt: "Word / question",
+    translation: "Translation",
+    forms: { plural: "Plural", dual: "Dual" },
     options: "Wrong options (separate with |)",
     origin: { file: "File", engine: "Engine", claude: "Claude", manual: "Manual" },
     uncertain: "Check",
@@ -129,12 +141,14 @@ export const en: Messages = {
       title: "How should the file look?",
       lines: [
         "Each row is one word or question. Column order: word/question, answer, then wrong options.",
+        "Arabic words and Uzbek translations may be mixed (“كتاب – kitob”, “kitob | كتاب”): the app puts the Arabic text in the “Word” column and the Uzbek text in “Translation”.",
+        "A plural or dual written beside a word (كِتَابٌ ج كُتُبٌ, قلم (أقلام), مثنى …, or a “Plural” / “Dual” column) becomes a row of its own with its own translation (kitoblar, ikki kitob). A translation the app made up itself is marked “Check”.",
         "In Excel and Word tables the first row may be a header: Word | Answer | Note | Option 1 | Option 2 … (Uzbek, Russian and Arabic headers are understood too).",
         "Each sheet of an Excel file becomes its own set. In Word, if there is no table, each paragraph is read as a row.",
         "In a text file separate columns with |, Tab or ;. Lines starting with # are ignored.",
         "A plain word list works too: words without answers are shown in activities, and the AI assistant can build their answers.",
       ],
-      example: "Word | Answer | Note | Option 1\nكتاب | كِتَابَانِ | dual, nominative | كِتَابَيْنِ\nشجرة | شَجَرَتَانِ | dual, nominative | شَجَرَتَيْنِ",
+      example: "So'z | Tarjima | Ko'pligi\nكِتَابٌ | kitob | كُتُبٌ\nقلم (أقلام) – qalam\nuy – بَيْتٌ ج بُيُوتٌ",
     },
   },
 
@@ -223,6 +237,8 @@ export const en: Messages = {
       "Word sets: import from Word (.docx), Excel (.xlsx) and text (.txt, .csv) files, edit and approve.",
       "AI assistant: the engine builds questions on dual, plural and case forms from a word list; Claude writes new questions on a topic.",
       "Interface in Uzbek, Arabic, Russian and English.",
+      "Activity direction: Arabic → Uzbek, Uzbek → Arabic, or word → answer. Test questions are asked in Uzbek.",
+      "Day and night appearance (or automatic, following Windows).",
     ],
     limitsTitle: "Limitations",
     limits: [

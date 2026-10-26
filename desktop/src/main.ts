@@ -9,6 +9,7 @@ import LexiconView from "./views/LexiconView.vue";
 import RulesView from "./views/RulesView.vue";
 import AboutView from "./views/AboutView.vue";
 import "./i18n";
+import "./theme";
 import "./style.css";
 
 const router = createRouter({

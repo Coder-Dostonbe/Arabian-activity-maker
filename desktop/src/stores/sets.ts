@@ -3,16 +3,20 @@ import { computed, ref, watch } from "vue";
 import { newId, readStorage, writeStorage } from "../util";
 
 export type Origin = "file" | "engine" | "claude" | "manual";
+export type Form = "plural" | "dual";
 
 export interface Item {
   id: string;
   prompt: string;
   answer: string;
   note: string;
+  translation: string; // Uzbek meaning of `prompt`, for the Arabic ⇄ Uzbek exercises
   options: string[]; // wrong answers only
   approved: boolean;
   origin: Origin;
   uncertain?: boolean;
+  form?: Form; // a plural / dual split off the word `base` it was written beside
+  base?: string;
 }
 
 export interface WordSet {
@@ -22,13 +26,16 @@ export interface WordSet {
   updated: number;
 }
 
-export type NewItem = Omit<Item, "id" | "approved" | "origin"> & Partial<Pick<Item, "approved">>;
+export type NewItem = Omit<Item, "id" | "approved" | "origin" | "translation"> & Partial<Pick<Item, "approved" | "translation">>;
 
 const KEY = "arabmorph.sets.v1";
 
 // The teacher's word sets, kept on this computer between runs.
 export const useSetsStore = defineStore("sets", () => {
-  const sets = ref<WordSet[]>(readStorage<WordSet[]>(KEY, []));
+  // Sets saved before 0.3.1 have no `translation`.
+  const sets = ref<WordSet[]>(
+    readStorage<WordSet[]>(KEY, []).map((s) => ({ ...s, items: s.items.map((i) => ({ ...i, translation: i.translation ?? "" })) })),
+  );
   const saveFailed = ref(false);
 
   watch(sets, (v) => (saveFailed.value = !writeStorage(KEY, v)), { deep: true });
@@ -40,7 +47,7 @@ export const useSetsStore = defineStore("sets", () => {
   }
 
   function makeItems(items: NewItem[], origin: Origin, approved: boolean): Item[] {
-    return items.map((i) => ({ ...i, id: newId(), origin, approved: i.approved ?? approved }));
+    return items.map((i) => ({ ...i, translation: i.translation ?? "", id: newId(), origin, approved: i.approved ?? approved }));
   }
 
   // Rows from a file the teacher chose are approved; generated rows must be reviewed first.

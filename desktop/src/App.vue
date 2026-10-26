@@ -2,6 +2,7 @@
 import { computed, onMounted } from "vue";
 import { locale, locales, messages, useI18n } from "./i18n";
 import { useEngineStore } from "./stores/engine";
+import { theme, themes } from "./theme";
 
 const store = useEngineStore();
 const m = useI18n();
@@ -36,6 +37,15 @@ const engineError = computed(() =>
           {{ item.label }}
         </RouterLink>
       </nav>
+      <div class="theme small" role="group" :aria-label="m.theme.label">
+        <span class="muted">{{ m.theme.label }}</span>
+        <div class="seg">
+          <button v-for="t in themes" :key="t" type="button" :class="{ on: theme === t }" :aria-pressed="theme === t"
+                  :title="m.theme.names[t]" @click="theme = t">
+            <span class="ico" aria-hidden="true">{{ { light: "☀", dark: "☾", system: "◐" }[t] }}</span>{{ m.theme.names[t] }}
+          </button>
+        </div>
+      </div>
       <label class="lang small">
         <span class="muted">{{ m.nav.language }}</span>
         <select v-model="locale" :aria-label="m.nav.language">
@@ -70,7 +80,7 @@ const engineError = computed(() =>
 .brand { display: flex; align-items: center; gap: 10px; padding: 0 6px; }
 .mark {
   width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center;
-  background: var(--accent); color: #fff; font-size: 26px; line-height: 1;
+  background: var(--accent); color: var(--on-accent); font-size: 26px; line-height: 1;
 }
 .name { font-weight: 600; }
 nav { display: flex; flex-direction: column; gap: 2px; }
@@ -79,7 +89,17 @@ nav { display: flex; flex-direction: column; gap: 2px; }
 .nav-link.secondary:first-of-type, .nav-link:not(.secondary) + .nav-link.secondary { margin-top: 10px; }
 .nav-link:hover { background: var(--surface-2); }
 .nav-link.router-link-exact-active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-.lang { display: flex; flex-direction: column; gap: 4px; padding: 0 6px; margin-top: auto; }
+.theme { display: flex; flex-direction: column; gap: 4px; padding: 0 6px; margin-top: auto; }
+.seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.seg button {
+  display: flex; flex-direction: column; align-items: center; min-inline-size: 0;
+  border: 0; border-radius: 0; padding: 4px 2px; font-size: 11px; line-height: 1.3; background: var(--surface);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.seg .ico { font-size: 15px; }
+.seg button + button { border-inline-start: 1px solid var(--border); }
+.seg button.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.lang { display: flex; flex-direction: column; gap: 4px; padding: 0 6px; }
 .engine-status { padding: 0 6px; }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-inline-end: 4px; }
 .dot.ok { background: var(--ok); }

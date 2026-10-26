@@ -5,6 +5,11 @@ export const uz = {
 
   app: { tagline: "Arab tili darslari uchun" },
 
+  theme: {
+    label: "Ko'rinish",
+    names: { light: "Kunduzgi", dark: "Tungi", system: "Avto" } as Record<string, string>,
+  },
+
   nav: {
     activity: "Mashg'ulot",
     test: "Test",
@@ -58,7 +63,12 @@ export const uz = {
       "Tasdiqlangan so'zlar navbat bilan ekranga chiqadi. Har biri uchun belgilangan vaqt beriladi; vaqt tugasa, keyingi so'zga avtomatik o'tiladi. Javob vaqtidan oldin topilsa yoki xato aytilsa, tugmani bosing.",
     perWord: "Har bir so'z uchun vaqt",
     reveal: "Keyin to'g'ri javobni qisqa ko'rsatish",
-    keys: "Klavishlar: 1 — to'g'ri · 2 — noto'g'ri · Probel — pauza · Esc — to'xtatish",
+    showAnswer: "Javobni ko'rsatish",
+    direction: "Mashq yo'nalishi",
+    directions: { ar_uz: "Arabcha → O'zbekcha", uz_ar: "O'zbekcha → Arabcha", word_answer: "So'z → javob" } as Record<string, string>,
+    noTranslations: "Bu to'plamdagi tasdiqlangan qatorlarda tarjima yo'q. «Tarjima» ustunini to'ldiring yoki «So'z → javob» yo'nalishini tanlang.",
+    withoutTranslation: (n: number) => `Tarjimasi yo'q ${n} ta qator bu yo'nalishda ko'rsatilmaydi.`,
+    keys: "Klavishlar: 1 — to'g'ri · 2 — noto'g'ri · 3 — javob · Probel — pauza · Esc — to'xtatish",
     progress: (i: number, n: number) => `${i} / ${n}`,
     finished: "Mashg'ulot tugadi",
     mistakes: "Xato va javobsiz qolgan so'zlar",
@@ -85,8 +95,8 @@ export const uz = {
     unanswered: "Javob berilmagan",
     review: "Savollar bo'yicha",
     keys: "Klavishlar: 1–4 — variant · Enter — keyingi · Probel — pauza",
-    noAnswers: "Bu to'plamdagi tasdiqlangan qatorlarda javob yo'q. Test uchun «Javob» ustuni kerak.",
-    withoutAnswer: (n: number) => `Javobi yo'q ${n} ta qator testga qo'shilmadi.`,
+    noAnswers: "Bu to'plamdagi tasdiqlangan qatorlardan savol tuzib bo'lmadi: test uchun javob yoki tarjima kerak.",
+    withoutAnswer: (n: number) => `Javobi ham, tarjimasi ham yo'q ${n} ta qator testga qo'shilmadi.`,
   },
 
   sets: {
@@ -108,6 +118,8 @@ export const uz = {
     noItems: "Bu to'plamda hali qator yo'q.",
     approved: "Tasdiq",
     prompt: "So'z / savol",
+    translation: "Tarjima",
+    forms: { plural: "Ko'plik", dual: "Ikkilik" } as Record<string, string>,
     options: "Noto'g'ri variantlar ( | bilan)",
     origin: { file: "Fayl", engine: "Dvigatel", claude: "Claude", manual: "Qo'lda" } as Record<string, string>,
     uncertain: "Tekshiring",
@@ -128,12 +140,14 @@ export const uz = {
       title: "Fayl qanday tuziladi?",
       lines: [
         "Har bir qator — bitta so'z yoki savol. Ustunlar tartibi: so'z/savol, javob, so'ng noto'g'ri variantlar.",
+        "Arabcha so'z va o'zbekcha tarjima aralash yozilsa ham bo'ladi («كتاب – kitob», «kitob | كتاب», «كتاب kitob»): dastur arab yozuvini «So'z», o'zbek yozuvini «Tarjima» ustuniga o'zi ajratib qo'yadi.",
+        "So'z yonida yozilgan ko'plik va ikkilik (كِتَابٌ ج كُتُبٌ, قلم (أقلام), مثنى …, yoki «Ko'pligi» / «Ikkiligi» ustuni) alohida qator bo'ladi va o'z tarjimasini oladi (kitoblar, ikki kitob). Tarjimani dastur o'zi yasagan bo'lsa, qator «Tekshiring» deb belgilanadi.",
         "Excel va Word jadvalida birinchi qatorga sarlavha yozish mumkin: So'z | Javob | Izoh | Variant 1 | Variant 2 … (rus, ingliz va arab tilidagi sarlavhalar ham tushuniladi).",
         "Excel faylidagi har bir varaq alohida to'plam bo'ladi. Word'da jadval bo'lmasa, har bir xatboshi qator sifatida o'qiladi.",
         "Matn faylida ustunlarni | , Tab yoki ; bilan ajrating. # bilan boshlangan qatorlar e'tiborga olinmaydi.",
         "Faqat so'zlar ro'yxati ham bo'ladi: javobsiz so'zlar mashg'ulotda ko'rsatiladi, AI yordamchi esa ularga javob yasab beradi.",
       ],
-      example: "So'z | Javob | Izoh | Variant 1\nكتاب | كِتَابَانِ | ikkilik, raf' | كِتَابَيْنِ\nشجرة | شَجَرَتَانِ | ikkilik, raf' | شَجَرَتَيْنِ",
+      example: "So'z | Tarjima | Ko'pligi\nكِتَابٌ | kitob | كُتُبٌ\nقلم (أقلام) – qalam\nuy – بَيْتٌ ج بُيُوتٌ",
     },
   },
 
@@ -223,6 +237,8 @@ export const uz = {
       "To'plamlar: Word (.docx), Excel (.xlsx), matn (.txt, .csv) fayllaridan yuklash, tahrirlash va tasdiqlash.",
       "AI yordamchi: dvigatel so'zlar ro'yxatidan ikkilik, ko'plik va kelishik shakllari bo'yicha savollar tuzadi; Claude esa mavzu bo'yicha yangi savollar yozadi.",
       "Interfeys: o'zbek, arab, rus va ingliz tillarida.",
+      "Mashg'ulot yo'nalishi: Arabcha → O'zbekcha, O'zbekcha → Arabcha yoki So'z → javob. Test savollari o'zbek tilida beriladi.",
+      "Kunduzgi va tungi ko'rinish (yoki Windows sozlamasiga qarab avtomatik).",
     ],
     limitsTitle: "Cheklovlar",
     limits: [

@@ -25,13 +25,13 @@ def test_txt_with_header_and_pipes():
     r = import_file("dual.txt", text.encode("utf-8"))
     assert r["sets"][0]["name"] == "dual"
     first, second = items(r)
-    assert first == {"prompt": "كتاب", "answer": "كِتَابَانِ", "note": "kitob", "options": ["كِتَابَيْنِ", "كُتُبٌ"]}
+    assert first == {"prompt": "كتاب", "answer": "كِتَابَانِ", "note": "kitob", "options": ["كِتَابَيْنِ", "كُتُبٌ"], "translation": ""}
     assert second["answer"] == "شَجَرَتَانِ" and second["options"] == []
 
 
 def test_txt_without_header_is_positional():
     r = import_file("w.txt", "كتاب\tكتابان\tكتابين\nقلم\tقلمان\n".encode("utf-8"))
-    assert items(r)[0] == {"prompt": "كتاب", "answer": "كتابان", "note": "", "options": ["كتابين"]}
+    assert items(r)[0] == {"prompt": "كتاب", "answer": "كتابان", "note": "", "options": ["كتابين"], "translation": ""}
 
 
 def test_txt_plain_word_list_and_numbering_and_comments():
@@ -57,12 +57,12 @@ def test_option_equal_to_answer_is_dropped():
 
 def test_csv():
     r = import_file("t.csv", "Question,Answer,Option 1\nكتاب,كتابان,كتابين\n".encode("utf-8"))
-    assert items(r)[0] == {"prompt": "كتاب", "answer": "كتابان", "note": "", "options": ["كتابين"]}
+    assert items(r)[0] == {"prompt": "كتاب", "answer": "كتابان", "note": "", "options": ["كتابين"], "translation": ""}
 
 
 def test_russian_and_arabic_headers():
     r = import_file("ru.txt", "Слово|Ответ|Перевод\nكتاب|كتابان|книга\n".encode("utf-8"))
-    assert items(r)[0]["note"] == "книга"
+    assert items(r)[0]["translation"] == "книга" and items(r)[0]["note"] == ""
     r = import_file("ar.txt", "الكلمة|الجواب|خيار 1\nكتاب|كتابان|كتابين\n".encode("utf-8"))
     assert items(r)[0]["options"] == ["كتابين"]
 
@@ -95,7 +95,7 @@ def test_xlsx_single_sheet_uses_file_name_and_shared_strings():
                     '</sheetData></worksheet>')
     r = import_file("one.xlsx", buf.getvalue())
     assert r["sets"][0]["name"] == "one"
-    assert items(r)[0] == {"prompt": "كتاب", "answer": "كتابان", "note": "", "options": ["3"]}
+    assert items(r)[0] == {"prompt": "كتاب", "answer": "كتابان", "note": "", "options": ["3"], "translation": ""}
 
 
 def test_docx_tables_each_with_header_form_one_set():

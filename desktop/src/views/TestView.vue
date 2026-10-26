@@ -3,11 +3,11 @@ import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import SetPicker from "../components/SetPicker.vue";
 import { useCountdown } from "../composables/countdown";
 import { useI18n } from "../i18n";
-import { useSetsStore, type Item } from "../stores/sets";
+import { askable, questions as buildQuestions, UZ_QUESTIONS, type Question } from "../exercise";
+import { useSetsStore } from "../stores/sets";
 import { arClass, textDir, beep, formatClock, persisted, shuffle } from "../util";
 
 type Outcome = "correct" | "wrong" | "skipped";
-interface Question { item: Item; options: string[] | null }
 
 const LETTERS = ["A", "B", "C", "D", "E", "F", "G"];
 
@@ -32,7 +32,7 @@ const revealed = ref(false);
 const chosen = ref<string | null>(null);
 
 const approved = computed(() => sets.get(setId.value)?.items.filter((i) => i.approved) ?? []);
-const answerable = computed(() => approved.value.filter((i) => i.answer));
+const answerable = computed(() => askable(approved.value));
 const current = computed(() => questions.value[index.value]);
 const decided = computed(() => outcomes.value[index.value] !== undefined);
 const lowTime = computed(() => timer.remaining.value <= 10_000);
@@ -47,17 +47,6 @@ const counts = computed(() => {
   return c;
 });
 
-/** The row's own wrong options, or answers of other rows in the set when it has none. */
-function buildOptions(item: Item, pool: Item[]): string[] | null {
-  let wrong = item.options.filter((o) => o !== item.answer);
-  if (!wrong.length) {
-    const others = [...new Set(pool.map((p) => p.answer))].filter((a) => a && a !== item.answer);
-    wrong = shuffle(others);
-  }
-  wrong = wrong.slice(0, 3);
-  return wrong.length ? shuffle([item.answer, ...wrong]) : null;
-}
-
 function begin() {
   const pool = answerable.value;
   if (!pool.length) return;
@@ -65,8 +54,8 @@ function begin() {
   extraSeconds.value = Math.min(59, Math.max(0, Math.round(extraSeconds.value || 0)));
   const ms = (minutes.value * 60 + extraSeconds.value) * 1000;
   if (ms <= 0) return;
-  const items = mix.value ? shuffle(pool) : pool.slice();
-  questions.value = items.map((item) => ({ item, options: withOptions.value ? buildOptions(item, pool) : null }));
+  const built = buildQuestions(pool, withOptions.value);
+  questions.value = mix.value ? shuffle(built) : built;
   outcomes.value = [];
   index.value = 0;
   revealed.value = false;
@@ -85,7 +74,7 @@ function choose(option: string) {
   if (revealed.value || paused.value) return;
   chosen.value = option;
   revealed.value = true;
-  record(option === current.value.item.answer ? "correct" : "wrong");
+  record(option === current.value.answer ? "correct" : "wrong");
 }
 
 function judge(outcome: "correct" | "wrong") {
@@ -124,8 +113,13 @@ function togglePause() {
 
 function optionClass(option: string) {
   if (!revealed.value) return "";
-  if (option === current.value.item.answer) return "is-right";
+  if (option === current.value.answer) return "is-right";
   return option === chosen.value ? "is-wrong" : "dim";
+}
+
+/** The Uzbek question line; a row whose prompt is already a written question needs none. */
+function questionText(q: Question): string {
+  return q.ask === "answer" && !arClass(q.shown) ? "" : UZ_QUESTIONS[q.ask];
 }
 
 function onKey(e: KeyboardEvent) {
@@ -187,10 +181,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
       </div>
 
       <div class="card">
-        <div v-if="current.item.note" class="note" :class="arClass(current.item.note)">{{ current.item.note }}</div>
-        <div class="prompt" :class="arClass(current.item.prompt)" :dir="textDir(current.item.prompt)">{{ current.item.prompt }}</div>
-        <div v-if="revealed && !current.options" class="answer" :class="arClass(current.item.answer)" :dir="textDir(current.item.answer)">
-          {{ current.item.answer }}
+        <div v-if="questionText(current)" class="question" lang="uz" dir="ltr">{{ questionText(current) }}</div>
+        <div v-if="current.item.note && current.ask === 'answer'" class="note" :class="arClass(current.item.note)">{{ current.item.note }}</div>
+        <div class="prompt" :class="arClass(current.shown)" :dir="textDir(current.shown)">{{ current.shown }}</div>
+        <div v-if="revealed && !current.options" class="answer" :class="arClass(current.answer)" :dir="textDir(current.answer)">
+          {{ current.answer }}
         </div>
         <div v-if="paused" class="paused-badge">{{ m.common.paused }}</div>
       </div>
@@ -239,8 +234,9 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           <tbody>
             <tr v-for="(q, i) in questions" :key="i">
               <td class="muted">{{ i + 1 }}</td>
-              <td :class="arClass(q.item.prompt)" class="cell-big">{{ q.item.prompt }}</td>
-              <td :class="arClass(q.item.answer)" class="cell-big">{{ q.item.answer }}</td>
+              <td class="small muted">{{ questionText(q) }}</td>
+              <td :class="arClass(q.shown)" class="cell-big">{{ q.shown }}</td>
+              <td :class="arClass(q.answer)" class="cell-big">{{ q.answer }}</td>
               <td>
                 <span v-if="outcomes[i] === 'correct'" class="badge ok">{{ m.common.correct }}</span>
                 <span v-else-if="outcomes[i] === 'wrong'" class="badge err">{{ m.common.wrong }}</span>
@@ -277,6 +273,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 }
 .prompt { font-size: clamp(44px, 8vw, 104px); line-height: 1.3; word-break: break-word; }
 .prompt:not(.ar) { font-size: clamp(26px, 4vw, 48px); }
+.question { font-size: clamp(20px, 2.6vw, 30px); font-weight: 600; }
 .note { font-size: 20px; color: var(--muted); }
 .answer { font-size: clamp(34px, 6vw, 76px); color: var(--ok); }
 .answer:not(.ar) { font-size: clamp(22px, 3.6vw, 40px); }

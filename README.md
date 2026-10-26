@@ -10,7 +10,7 @@ the knowledge base and the AI layer will be built on top of it in later phases.
 | ----- | ----- | ------ |
 | 1 — Foundation | Repo layout, engine package, normalisation, first dual rules, tests | **Done** (pending review, AM-1) |
 | 2 — Linguistic engine | Declension, sound + broken plurals, exceptions, governor-based case | **Done** (pending review, AM-2) |
-| 8 (early) — Desktop | Windows classroom app (Tauri + Vue): timed activity, timed test, word sets from Word/Excel/txt, engine + optional Claude assistant, UZ/AR/RU/EN interface | **Preview v0.3.0** — see `desktop/` |
+| 8 (early) — Desktop | Windows classroom app (Tauri + Vue): timed activity, timed test, word sets from Word/Excel/txt with Arabic / Uzbek sorting and plural / dual rows, Arabic ⇄ Uzbek drills, day / night mode, engine + optional Claude assistant, UZ/AR/RU/EN interface | **Preview v0.3.1** — see `desktop/` |
 | 3–10 | Database, API, web frontend, documents, AI agent, sync, education, production | Not started |
 
 ## Repository layout

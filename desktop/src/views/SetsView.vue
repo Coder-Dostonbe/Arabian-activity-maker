@@ -55,7 +55,7 @@ function newSet() {
 }
 
 function addRow() {
-  if (selected.value) sets.append(selected.value.id, [{ prompt: "", answer: "", note: "", options: [] }], "manual");
+  if (selected.value) sets.append(selected.value.id, [{ prompt: "", answer: "", note: "", translation: "", options: [] }], "manual");
 }
 
 function removeRow(item: Item) {
@@ -147,6 +147,7 @@ function setOptions(item: Item, text: string) {
                 <tr>
                   <th>{{ m.sets.approved }}</th>
                   <th>{{ m.sets.prompt }}</th>
+                  <th>{{ m.sets.translation }}</th>
                   <th>{{ m.common.answer }}</th>
                   <th>{{ m.common.note }}</th>
                   <th>{{ m.sets.options }}</th>
@@ -157,6 +158,7 @@ function setOptions(item: Item, text: string) {
                 <tr v-for="item in selected.items" :key="item.id" :class="{ pending: !item.approved }">
                   <td class="center"><input v-model="item.approved" type="checkbox" :aria-label="m.sets.approved" /></td>
                   <td><input v-model="item.prompt" type="text" :class="arClass(item.prompt)" :dir="textDir(item.prompt)" /></td>
+                  <td><input v-model="item.translation" type="text" :class="arClass(item.translation)" :dir="textDir(item.translation)" /></td>
                   <td><input v-model="item.answer" type="text" :class="arClass(item.answer)" :dir="textDir(item.answer)" /></td>
                   <td><input v-model="item.note" type="text" :dir="textDir(item.note)" /></td>
                   <td>
@@ -164,6 +166,7 @@ function setOptions(item: Item, text: string) {
                            @change="setOptions(item, ($event.target as HTMLInputElement).value)" />
                   </td>
                   <td class="meta">
+                    <span v-if="item.form" class="badge accent" :title="item.base">{{ m.sets.forms[item.form] }}</span>
                     <span class="badge">{{ m.sets.origin[item.origin] }}</span>
                     <span v-if="item.uncertain" class="badge warn">{{ m.sets.uncertain }}</span>
                     <button class="icon" :aria-label="m.common.delete" :title="m.common.delete" @click="removeRow(item)">✕</button>
@@ -211,5 +214,5 @@ function setOptions(item: Item, text: string) {
 .icon { border: 0; background: none; padding: 2px 6px; color: var(--muted); }
 .icon:hover { color: var(--err); background: none; }
 .danger { color: var(--err); }
-.danger.solid { background: var(--err); border-color: var(--err); color: #fff; }
+.danger.solid { background: var(--err); border-color: var(--err); color: var(--on-accent); }
 </style>

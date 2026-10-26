@@ -39,12 +39,18 @@ export interface EngineVersion {
   lexicon_sources: string[];
 }
 
-/** One row read from a teacher's file. `options` are wrong answers only. */
+/** One item read from a teacher's file. `options` are wrong answers only. */
 export interface RawItem {
   prompt: string;
   answer: string;
   note: string;
+  translation: string;
   options: string[];
+  /** Set on a plural / dual the service split off the word `base` it was written beside. */
+  form?: "plural" | "dual";
+  base?: string;
+  /** A translation or form the service guessed; the teacher should check it. */
+  uncertain?: boolean;
 }
 
 export interface ImportResult {

@@ -1,5 +1,8 @@
 """Write the sample teacher files in desktop/samples/ (txt, xlsx, docx).
 
+lugat.txt is a word list the way teachers type it: Arabic and Uzbek mixed in any order,
+plurals and duals written beside the word. The import sorts it into word / translation rows.
+
 Run: python desktop/scripts/make_samples.py
 """
 
@@ -26,12 +29,23 @@ TEST = [
     ["«مهندس» — muzakkar solim ko'plik, raf'", "مُهَنْدِسُونَ", "مُهَنْدِسِينَ", "مُهَنْدِسَاتٌ", "مَهَانِدُ"],
 ]
 
+VOCAB = """# ArabMorph AI — lug'at namunasi: arabcha va o'zbekcha aralash, ko'plik so'z yonida
+كِتَابٌ ج كُتُبٌ – kitob
+qalam – قَلَمٌ ج أَقْلَامٌ
+بَيْتٌ (بُيُوتٌ) – uy
+طَالِبٌ ج طُلَّابٌ | talaba | talabalar
+عَيْنٌ مثنى عَيْنَانِ – ko'z
+مَدْرَسَةٌ – maktab
+o'qituvchi | مُعَلِّمٌ ج مُعَلِّمُونَ
+"""
+
 
 def main():
     OUT.mkdir(exist_ok=True)
     txt = "# ArabMorph AI — namuna fayl. Ustunlar: so'z | javob | izoh | noto'g'ri variantlar\n"
     txt += "\n".join(" | ".join(row) for row in DUAL) + "\n"
     (OUT / "namuna.txt").write_text(txt, encoding="utf-8")
+    (OUT / "lugat.txt").write_text(VOCAB, encoding="utf-8")
     (OUT / "namuna.xlsx").write_bytes(xlsx({"Ikkilik": DUAL, "Test": TEST}))
     (OUT / "namuna.docx").write_bytes(docx(paragraphs=["ArabMorph AI — namuna"], tables=[TEST]))
     print(f"samples written to {OUT}")
