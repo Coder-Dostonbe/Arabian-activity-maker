@@ -10,6 +10,8 @@ import RulesView from "./views/RulesView.vue";
 import AboutView from "./views/AboutView.vue";
 import "./i18n";
 import "./theme";
+import "@fontsource-variable/noto-sans";
+import "@fontsource-variable/noto-sans-arabic";
 import "./style.css";
 
 const router = createRouter({

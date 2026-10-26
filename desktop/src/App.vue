@@ -17,6 +17,8 @@ const nav = computed(() => [
   { to: "/about", label: m.value.nav.about, secondary: true },
 ]);
 
+const appVersion = __APP_VERSION__;
+
 const engineError = computed(() =>
   store.errorCode === "desktop_only" ? m.value.engine.desktopOnly : store.error,
 );
@@ -24,86 +26,89 @@ const engineError = computed(() =>
 
 <template>
   <div class="shell">
-    <aside class="sidebar">
-      <div class="brand">
+    <header class="topbar">
+      <div class="brand" :title="m.app.tagline">
         <span class="mark ar" aria-hidden="true">ص</span>
-        <div>
-          <div class="name">ArabMorph AI</div>
-          <div class="small muted">{{ m.app.tagline }}</div>
-        </div>
+        <span class="name">ArabMorph AI</span>
       </div>
       <nav>
         <RouterLink v-for="item in nav" :key="item.to" :to="item.to" class="nav-link" :class="{ secondary: item.secondary }">
           {{ item.label }}
         </RouterLink>
       </nav>
-      <div class="theme small" role="group" :aria-label="m.theme.label">
-        <span class="muted">{{ m.theme.label }}</span>
-        <div class="seg">
+      <div class="tools">
+        <div class="seg small" role="group" :aria-label="m.theme.label">
           <button v-for="t in themes" :key="t" type="button" :class="{ on: theme === t }" :aria-pressed="theme === t"
-                  :title="m.theme.names[t]" @click="theme = t">
+                  :title="`${m.theme.label}: ${m.theme.names[t]}`" @click="theme = t">
             <span class="ico" aria-hidden="true">{{ { light: "☀", dark: "☾", system: "◐" }[t] }}</span>{{ m.theme.names[t] }}
           </button>
         </div>
-      </div>
-      <label class="lang small">
-        <span class="muted">{{ m.nav.language }}</span>
-        <select v-model="locale" :aria-label="m.nav.language">
+        <select v-model="locale" class="small" :aria-label="m.nav.language" :title="m.nav.language">
           <option v-for="l in locales" :key="l" :value="l">{{ messages[l].langName }}</option>
         </select>
-      </label>
-      <div class="engine-status small">
-        <template v-if="store.version">
-          <span class="dot ok" /> {{ m.engine.ok }}
-          <div class="muted">{{ m.engine.stats(store.version.engine, store.version.rules, store.version.lexicon_entries) }}</div>
-        </template>
-        <template v-else-if="store.error !== null">
-          <span class="dot err" /> {{ m.engine.down }}
-          <div class="muted">{{ engineError }}</div>
-          <button class="retry" @click="store.connect()">{{ m.engine.retry }}</button>
-        </template>
-        <template v-else><span class="dot" /> {{ m.engine.starting }}</template>
       </div>
-    </aside>
+    </header>
     <main class="content">
       <RouterView />
     </main>
+    <footer class="footer small muted">
+      <span>ArabMorph AI · {{ m.app.version(appVersion) }}</span>
+      <span class="engine-status">
+        <template v-if="store.version">
+          <span class="dot ok" />{{ m.engine.ok }} · {{ m.engine.stats(store.version.engine, store.version.rules, store.version.lexicon_entries) }}
+        </template>
+        <template v-else-if="store.error !== null">
+          <span class="dot err" />{{ m.engine.down }}<span v-if="engineError"> — {{ engineError }}</span>
+          <button class="retry" @click="store.connect()">{{ m.engine.retry }}</button>
+        </template>
+        <template v-else><span class="dot" />{{ m.engine.starting }}</template>
+      </span>
+    </footer>
   </div>
 </template>
 
 <style scoped>
-.shell { display: grid; grid-template-columns: 220px 1fr; height: 100%; }
-.sidebar {
-  display: flex; flex-direction: column; gap: 16px;
-  padding: 16px 12px; border-inline-end: 1px solid var(--border); background: var(--surface);
+.shell { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; height: 100%; }
+.topbar {
+  display: flex; align-items: center; gap: 20px;
+  padding: 8px 20px; border-bottom: 1px solid var(--border); background: var(--surface);
 }
-.brand { display: flex; align-items: center; gap: 10px; padding: 0 6px; }
+.brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .mark {
-  width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center;
-  background: var(--accent); color: var(--on-accent); font-size: 26px; line-height: 1;
+  width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center;
+  background: var(--accent); color: var(--on-accent); font-size: 22px; line-height: 1;
 }
-.name { font-weight: 600; }
-nav { display: flex; flex-direction: column; gap: 2px; }
-.nav-link { padding: 7px 10px; border-radius: 6px; color: var(--text); text-decoration: none; }
+.name { font-weight: 600; font-size: 15px; white-space: nowrap; }
+nav { display: flex; align-items: center; gap: 2px; flex: 1; min-inline-size: 0; flex-wrap: wrap; }
+.nav-link { padding: 6px 12px; border-radius: 6px; color: var(--text); text-decoration: none; white-space: nowrap; }
 .nav-link.secondary { color: var(--muted); }
-.nav-link.secondary:first-of-type, .nav-link:not(.secondary) + .nav-link.secondary { margin-top: 10px; }
+.nav-link:not(.secondary) + .nav-link.secondary {
+  margin-inline-start: 9px; position: relative;
+}
+.nav-link:not(.secondary) + .nav-link.secondary::before {
+  content: ""; position: absolute; inset-inline-start: -6px; top: 20%; bottom: 20%;
+  border-inline-start: 1px solid var(--border);
+}
 .nav-link:hover { background: var(--surface-2); }
 .nav-link.router-link-exact-active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-.theme { display: flex; flex-direction: column; gap: 4px; padding: 0 6px; margin-top: auto; }
-.seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.tools { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.seg { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
 .seg button {
-  display: flex; flex-direction: column; align-items: center; min-inline-size: 0;
-  border: 0; border-radius: 0; padding: 4px 2px; font-size: 11px; line-height: 1.3; background: var(--surface);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  display: flex; align-items: center; gap: 4px;
+  border: 0; border-radius: 0; padding: 4px 9px; font-size: 12px; background: var(--surface); white-space: nowrap;
 }
-.seg .ico { font-size: 15px; }
+.seg .ico { font-size: 14px; }
 .seg button + button { border-inline-start: 1px solid var(--border); }
 .seg button.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-.lang { display: flex; flex-direction: column; gap: 4px; padding: 0 6px; }
-.engine-status { padding: 0 6px; }
-.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-inline-end: 4px; }
+.tools select { padding: 4px 8px; }
+.content { overflow: auto; padding: 24px 28px; }
+.footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  padding: 6px 20px; border-top: 1px solid var(--border); background: var(--surface);
+}
+.engine-status { display: inline-flex; align-items: center; gap: 2px; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-inline-end: 6px; }
 .dot.ok { background: var(--ok); }
 .dot.err { background: var(--err); }
-.retry { margin-top: 6px; font-size: 12px; padding: 3px 8px; }
-.content { overflow: auto; padding: 24px 28px; }
+.retry { margin-inline-start: 8px; font-size: 12px; padding: 1px 8px; }
 </style>

@@ -14,7 +14,8 @@ and English; the language is switched in the UI and remembered on the computer.
 | **AI assistant** | *Engine (offline):* from a word list, builds the chosen dual / plural / singular form in a chosen case and state, with real forms of the same word as distractors. Ambiguous words are skipped with a reason. *Claude (online, optional):* drafts items on a topic with the teacher's Anthropic API key (`claude-opus-5-5`, structured output, server-side refusal fallback enabled). |
 | Lexicon, Rules, About | Unchanged reference pages, now translated. |
 
-The sidebar switches between **day**, **night** and **auto** (follows Windows) appearance.
+The top navigation bar switches between **day**, **night** and **auto** (follows Windows) appearance.
+The app version and the offline engine version (with rule / word counts) are shown in the footer. All text uses one bundled typeface — Noto Sans with its Arabic sibling — so it looks the same and works offline on every computer.
 
 Sets and preferences are stored in the app's local storage on this computer.
 
@@ -99,7 +100,7 @@ The installer includes the service, so end users don't need Python.
 cd desktop
 npm install
 npm run sidecar          # freeze the engine service (PyInstaller) and smoke-test it
-npx tauri build          # → src-tauri/target/release/bundle/nsis/ArabMorph AI_0.3.1_x64-setup.exe
+npx tauri build          # → src-tauri/target/release/bundle/nsis/ArabMorph AI_0.4.0_x64-setup.exe
 ```
 
 `npx tauri dev` runs the app with hot reload. Run `npm run sidecar` first, and

@@ -3,7 +3,7 @@ export const uz = {
   langName: "O'zbekcha",
   claudeLanguage: "Uzbek (Latin script)",
 
-  app: { tagline: "Arab tili darslari uchun" },
+  app: { tagline: "Arab tili darslari uchun", version: (v: string) => `Ilova v${v}` },
 
   theme: {
     label: "Ko'rinish",
@@ -22,7 +22,7 @@ export const uz = {
 
   engine: {
     ok: "Oflayn dvigatel ishlayapti",
-    stats: (v: string, rules: number, words: number) => `v${v} · ${rules} qoida · ${words} so'z`,
+    stats: (v: string, rules: number, words: number) => `Dvigatel v${v} · ${rules} qoida · ${words} so'z`,
     down: "Dvigatel bilan aloqa yo'q",
     starting: "Dvigatel ishga tushmoqda…",
     retry: "Qayta urinish",

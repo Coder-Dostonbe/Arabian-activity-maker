@@ -192,7 +192,7 @@ function setOptions(item: Item, text: string) {
 .format ul { margin: 8px 0; padding-inline-start: 20px; }
 .example {
   background: var(--surface-2); border-radius: 6px; padding: 10px 12px; margin: 0;
-  font-family: var(--font-ar), monospace; font-size: 16px; white-space: pre-wrap;
+  font-family: var(--font-ar); font-size: 16px; white-space: pre-wrap;
 }
 .layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 16px; align-items: start; }
 .set-list { display: flex; flex-direction: column; gap: 4px; }

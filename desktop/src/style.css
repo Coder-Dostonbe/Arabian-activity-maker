@@ -15,9 +15,10 @@
   --err-soft: #f8e3e3;
   --on-accent: #ffffff; /* text on accent / ok / err buttons */
   --radius: 8px;
-  --font-ui: "Segoe UI", system-ui, sans-serif;
-  /* Windows ships these; no network fonts — the app must work offline. */
-  --font-ar: "Sakkal Majalla", "Traditional Arabic", "Arabic Typesetting", "Segoe UI", serif;
+  /* One typeface everywhere: Noto Sans for Latin/Cyrillic, its Arabic sibling for Arabic.
+     Bundled with the app (main.ts), so it works offline. */
+  --font-ui: "Noto Sans Variable", "Noto Sans Arabic Variable", "Segoe UI", system-ui, sans-serif;
+  --font-ar: "Noto Sans Arabic Variable", "Noto Sans Variable", "Segoe UI", sans-serif;
   color-scheme: light;
 }
 

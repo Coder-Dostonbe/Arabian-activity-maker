@@ -4,7 +4,7 @@ export const en: Messages = {
   langName: "English",
   claudeLanguage: "English",
 
-  app: { tagline: "For Arabic lessons" },
+  app: { tagline: "For Arabic lessons", version: (v) => `App v${v}` },
 
   theme: {
     label: "Appearance",
@@ -23,7 +23,7 @@ export const en: Messages = {
 
   engine: {
     ok: "Offline engine is running",
-    stats: (v, rules, words) => `v${v} · ${rules} rules · ${words} words`,
+    stats: (v, rules, words) => `Engine v${v} · ${rules} rules · ${words} words`,
     down: "No connection to the engine",
     starting: "Starting the engine…",
     retry: "Try again",

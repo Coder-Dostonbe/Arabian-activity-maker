@@ -12,7 +12,7 @@ export const ru: Messages = {
   langName: "Русский",
   claudeLanguage: "Russian",
 
-  app: { tagline: "Для уроков арабского языка" },
+  app: { tagline: "Для уроков арабского языка", version: (v) => `Приложение v${v}` },
 
   theme: {
     label: "Оформление",
@@ -31,7 +31,7 @@ export const ru: Messages = {
 
   engine: {
     ok: "Офлайн-движок работает",
-    stats: (v, rules, words) => `v${v} · ${rules} ${plural(rules, "правило", "правила", "правил")} · ${words} ${plural(words, "слово", "слова", "слов")}`,
+    stats: (v, rules, words) => `Движок v${v} · ${rules} ${plural(rules, "правило", "правила", "правил")} · ${words} ${plural(words, "слово", "слова", "слов")}`,
     down: "Нет связи с движком",
     starting: "Движок запускается…",
     retry: "Повторить",

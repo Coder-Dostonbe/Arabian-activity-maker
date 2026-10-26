@@ -4,7 +4,7 @@ export const ar: Messages = {
   langName: "العربية",
   claudeLanguage: "Arabic",
 
-  app: { tagline: "لدروس اللغة العربية" },
+  app: { tagline: "لدروس اللغة العربية", version: (v) => `التطبيق ${v}` },
 
   theme: {
     label: "المظهر",
@@ -23,7 +23,7 @@ export const ar: Messages = {
 
   engine: {
     ok: "المحرّك يعمل دون اتصال",
-    stats: (v, rules, words) => `الإصدار ${v} · ${rules} قاعدة · ${words} كلمة`,
+    stats: (v, rules, words) => `المحرّك ${v} · ${rules} قاعدة · ${words} كلمة`,
     down: "لا اتصال بالمحرّك",
     starting: "جارٍ تشغيل المحرّك…",
     retry: "إعادة المحاولة",

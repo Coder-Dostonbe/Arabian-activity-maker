@@ -1,7 +1,7 @@
 {
   "name": "arabmorph-desktop",
   "private": true,
-  "version": "0.3.1",
+  "version": "0.4.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.133.0",
+    "@fontsource-variable/noto-sans": "^5.3.0",
+    "@fontsource-variable/noto-sans-arabic": "^5.3.0",
     "@tauri-apps/api": "^2.12.4",
     "pinia": "^2.3.1",
     "vue": "^3.5.44",
