@@ -247,7 +247,7 @@ def uz_plural(text: str) -> str:
             continue
         words[-1] += "лар" if _CYRILLIC.search(last) else "lar"
         out.append(" ".join(words) + tail)
-    return ", ".join(out)
+    return ", ".join(dict.fromkeys(out))  # "kitob, kitoblar" -> "kitoblar", not "kitoblar, kitoblar"
 
 
 def uz_dual(text: str) -> str:
@@ -259,6 +259,30 @@ def uz_dual(text: str) -> str:
             two, part = two.capitalize(), part[:1].lower() + part[1:]
         out.append(f"{two} {part}")
     return ", ".join(out)
+
+
+_UZ_PARTS = re.compile(r"\s*[,;/]\s*|\s+[-–—]\s+")  # "kitob, kitoblar", "kitob – kitoblar"
+
+
+def split_given(translation: str, kinds: list[str]) -> tuple[str, list[str]]:
+    """The forms' translations written in the word's own cell: "kitob, kitoblar" -> ("kitob", ["kitoblar"]).
+
+    A meaning moves only when it is exactly the plural / dual of another meaning in the cell.
+    """
+    parts = [p for p in _UZ_PARTS.split(translation) if p]
+    found: dict[str, list[str]] = {}
+    for p in parts:
+        for q in parts:
+            if p == q:
+                continue
+            for kind, make in (("plural", uz_plural), ("dual", uz_dual)):
+                if kind in kinds and make(q).casefold() == p.casefold():
+                    found.setdefault(kind, []).append(p)
+    moved = {p for ps in found.values() for p in ps}
+    left = [p for p in parts if p not in moved]
+    if not moved or not left:
+        return translation, []
+    return ", ".join(left), [", ".join(found.get(k, [])) for k in kinds]
 
 
 # --- rows -> items ------------------------------------------------------------------
@@ -307,8 +331,11 @@ def expand(fields: dict, options: list[str], forms_given: list[dict] | None = No
         forms = found + forms
         if labels:
             note = ", ".join([note, *labels]) if note else ", ".join(labels)
+    given: list[str] = []
+    if forms:
+        translation, given = split_given(translation, [f["kind"] for f in forms])
     head = _item(prompt, fields["answer"], note, options, translation)
-    return [head, *_derived(prompt, translation, forms, [])]
+    return [head, *_derived(prompt, translation, forms, given)]
 
 
 def split_row(cells: list[str]) -> list[dict] | None:
@@ -356,5 +383,7 @@ def split_row(cells: list[str]) -> list[dict] | None:
     rest = uz[1 + len(given):]
     if not forms and rest:
         translation, rest = ", ".join(uz), []
+    if forms and not given:
+        translation, given = split_given(translation, [f["kind"] for f in forms])
     head = _item(word, extra[0] if extra else "", ", ".join([*labels, *rest]), extra[1:], translation)
     return [head, *_derived(word, translation, forms, given)]

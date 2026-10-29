@@ -40,6 +40,40 @@ def test_marked_plural_becomes_its_own_item_with_translation():
     assert plural["uncertain"]  # "kitoblar" was made up, the teacher checks it
 
 
+@pytest.mark.parametrize("line", [
+    "كِتَابٌ ج كُتُبٌ – kitob, kitoblar",
+    "كِتَابٌ ج كُتُبٌ – kitob – kitoblar",
+    "كِتَابٌ ج كُتُبٌ – kitob / kitoblar",
+    "kitob, kitoblar – كِتَابٌ ج كُتُبٌ",
+    "كِتَابٌ ج كُتُبٌ – kitoblar, kitob",
+])
+def test_plural_translation_in_the_word_cell_goes_to_the_plural(line):
+    # Regression: the singular was "kitob, kitoblar" and the plural "kitoblar, kitoblar".
+    word, plural = rows(line)
+    assert (word["translation"], plural["translation"]) == ("kitob", "kitoblar")
+    assert "uncertain" not in plural  # the teacher wrote it
+
+
+def test_dual_translation_in_the_word_cell_goes_to_the_dual():
+    word, dual = rows("عَيْنٌ مثنى عَيْنَانِ – ko'z, ikki ko'z")
+    assert (word["translation"], dual["translation"]) == ("ko'z", "ikki ko'z")
+
+
+def test_other_meanings_stay_with_the_word():
+    word, plural = rows("بَيْتٌ ج بُيُوتٌ – uy, xona, uylar")
+    assert (word["translation"], plural["translation"]) == ("uy, xona", "uylar")
+
+
+def test_plural_translation_in_the_word_cell_of_a_multi_line_file():
+    items = rows("كِتَابٌ ج كُتُبٌ – kitob – kitoblar\nقَلَمٌ ج أَقْلَامٌ – qalam\n")
+    assert pairs(items) == [("كِتَابٌ", "kitob"), ("كُتُبٌ", "kitoblar"), ("قَلَمٌ", "qalam"), ("أَقْلَامٌ", "qalamlar")]
+
+
+def test_plural_translation_without_a_plural_form_is_kept():
+    (word,) = rows("كِتَابٌ – kitob, kitoblar")
+    assert word["translation"] == "kitob, kitoblar"
+
+
 @pytest.mark.parametrize("cell", ["بيت ج بيوت", "بيت ج. بيوت", "بيت جـ بيوت", "بيت (ج) بيوت", "بيت (ج بيوت)", "بيت الجمع: بيوت"])
 def test_plural_marker_spellings(cell):
     assert [(i["prompt"], i.get("form")) for i in rows(f"{cell} – uy")] == [("بيت", None), ("بيوت", "plural")]
@@ -129,6 +163,7 @@ def test_arabic_only_word_list_with_marker_is_split():
     ("китоб", "китоблар"),
     ("odamlar", "odamlar"),
     ("o'qimoq", "o'qimoq"),
+    ("kitob, kitoblar", "kitoblar"),
 ])
 def test_uz_plural(text, plural):
     assert vocab.uz_plural(text) == plural
