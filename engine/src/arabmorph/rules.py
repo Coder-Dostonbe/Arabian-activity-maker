@@ -133,6 +133,13 @@ _RULES = [
         "شاطئ ← شاطئانِ؛ لؤلؤ ← لؤلؤانِ", HAMZA_ORTHOGRAPHY, 0.9,
     ),
 
+    Rule(
+        "dual.five_nouns_waw", "تثنية الأسماء الخمسة",
+        "تُردّ الواو المحذوفة من أب وأخ وحم عند التثنية.",
+        "The waw dropped from أب, أخ and حم returns in the dual.",
+        "أب ← أبَوانِ؛ أخ ← أخَوانِ؛ حم ← حمَوانِ", GHALAYINI, 0.95,
+    ),
+
     # --- Declension with short vowels ---------------------------------------
     Rule(
         "decl.triptote", "إعراب الاسم المنصرف",
@@ -179,6 +186,13 @@ _RULES = [
         "ليالٍ، لياليَ، الليالي", GHALAYINI_DECL, 0.9,
     ),
     Rule(
+        "decl.five_nouns", "إعراب الأسماء الخمسة",
+        "تُرفع الأسماء الخمسة بالواو وتُنصب بالألف وتُجرّ بالياء إذا أُضيفت إلى غير ياء المتكلم.",
+        "When annexed to anything but the speaker's ـي, the five nouns take waw in the nominative, "
+        "alif in the accusative and yeh in the genitive.",
+        "أبو زيدٍ، أبا زيدٍ، أبي زيدٍ", GHALAYINI_DECL, 0.9,
+    ),
+    Rule(
         "decl.maqsur", "إعراب المقصور",
         "تُقدَّر الحركات كلها على ألف المقصور، ويُنوَّن المنصرف منه تنوينًا ظاهرًا على ما قبل الألف.",
         "All case vowels are implicit on the maqsur alif; a declinable one shows tanween on the letter before the alif.",
@@ -215,6 +229,19 @@ _RULES = [
         "إذا حُذفت التاء وقبلها ألف عوملت الألف معاملة ألف المقصور: تُردّ إلى أصلها إن كانت ثالثة، وتُقلب ياءً إن زادت.",
         "When ة follows an alif, the alif is treated like a maqsur alif: third-letter alifs revert to their origin, longer ones become yeh.",
         "صلاة ← صلوات؛ فتاة ← فتيات؛ مباراة ← مباريات", GHALAYINI_PLURAL, 0.9,
+    ),
+    Rule(
+        "plural.fem.attested_form", "الجمع المسموع بالألف والتاء",
+        "إذا أجازت القاعدة أكثر من صورة واستقرّ الاستعمال على واحدة قُدّمت الصورة المسموعة.",
+        "When the rules allow more than one spelling and usage settled on one, the attested form comes first.",
+        "سماء ← سماوات (وتُكتب سموات)", GHALAYINI_PLURAL, 0.9,
+    ),
+    Rule(
+        "plural.fem.analogical_variant", "صورة جائزة قياسًا قليلة الاستعمال",
+        "تجوز في الجمع بالألف والتاء معاملة الآخر معاملته في التثنية، لكن هذه الصورة قليلة الاستعمال "
+        "إذا ثبت السماع بغيرها.",
+        "Treating the ending as in the dual is permitted by analogy, but rarely used when another form is attested.",
+        "سماء ← سماءات (قياسًا)", GHALAYINI_PLURAL, 0.6,
     ),
     Rule(
         "plural.fem.hamza_madda", "الهمزة على الألف قبل ألف الجمع",
@@ -277,6 +304,47 @@ _RULES = [
         "ترفع كان وأخواتها المبتدأ ويُسمّى اسمها، وتنصب الخبر.",
         "كان and its sisters keep their subject nominative (and make the predicate accusative).",
         "كان الجوُّ جميلًا", GHALAYINI_DECL, 0.85,
+    ),
+    Rule(
+        "context.preposition_genitive_qualified", "الجرّ بحروف جرّ لها استعمالات أخرى",
+        "حتى ومنذ ومذ ورُبّ وخلا وعدا وحاشا تجرّ ما بعدها إذا كانت حروف جرّ، ولها استعمالات أخرى "
+        "لا تجرّ فيها (حتى العاطفة، منذ مع المرفوع، خلا وعدا وحاشا أفعالًا ناصبة).",
+        "حتى, منذ, مذ, رُبّ, خلا, عدا and حاشا make the next noun genitive when they are prepositions; "
+        "each also has other uses in which it does not (conjunction حتى, منذ with a nominative, "
+        "خلا/عدا/حاشا as verbs taking the accusative).",
+        "سهرتُ حتى الفجرِ؛ ما رأيته منذ يومين؛ جاء القوم خلا زيدٍ", GHALAYINI_DECL, 0.8,
+    ),
+    Rule(
+        "context.adverb_mudaf_genitive", "جرّ المضاف إليه بعد الظرف",
+        "الظروف الملازمة للإضافة (عند، بعد، قبل، مع، بين، فوق، تحت، أمام، خلف، حول، دون) "
+        "يكون الاسم بعدها مضافًا إليه مجرورًا.",
+        "Adverbs that are always annexed (عند، بعد، قبل، مع، بين، فوق، تحت، أمام، خلف، حول، دون) "
+        "make the next noun their muḍāf ilayh, which is genitive.",
+        "جلستُ تحتَ الشجرةِ؛ بعدَ الدرسِ", GHALAYINI_DECL, 0.9,
+    ),
+    Rule(
+        "context.kana_conjugated_nominative", "رفع اسم كان وأخواتها بعد صيغها المصرّفة",
+        "المضارع من كان وأخواتها والأفعال المنفية (ما زال، ما دام، لا يزال) ترفع الاسم بعدها "
+        "إذا لم يتصل بها ضمير يكون هو الاسم.",
+        "Imperfect and negated forms of كان and its sisters (يكون، ما زال، ما دام، لا يزال) keep the "
+        "next noun nominative as their subject, when no subject pronoun is attached to them.",
+        "يكون الجوُّ جميلًا؛ ما زال المطرُ نازلًا", GHALAYINI_DECL, 0.8,
+    ),
+    Rule(
+        "context.kana_pronoun_predicate_accusative", "نصب خبر كان إذا اتصل بها ضمير",
+        "إذا اتصل بكان أو إحدى أخواتها ضمير رفع (كانوا، كنتُ، أصبحنا) فهو اسمها، "
+        "والاسم الذي يليها خبرها منصوب.",
+        "When a subject pronoun is attached to كان or a sister (كانوا، كنتُ، أصبحنا), the pronoun is "
+        "the subject, and the noun that follows is the predicate, which is accusative.",
+        "كانوا طلابًا؛ أصبحنا أصدقاءَ", GHALAYINI_DECL, 0.8,
+    ),
+    Rule(
+        "context.la_nafiya_lil_jins", "اسم لا النافية للجنس",
+        "تنصب لا النافية للجنس اسمها النكرة. فإن كان مفردًا (غير مضاف ولا شبيه بالمضاف) بُني "
+        "على ما يُنصب به بلا تنوين: لا رجلَ، لا رجلَيْنِ، لا معلمينَ، لا طالباتِ.",
+        "لا that negates a whole class makes its indefinite noun accusative. A single (non-annexed) noun "
+        "is built on its accusative ending without tanween: لا رجلَ، لا رجلَيْنِ، لا معلمينَ، لا طالباتِ.",
+        "لا رجلَ في الدار؛ لا طالبَ علمٍ متكاسلٌ", GHALAYINI_DECL, 0.8,
     ),
 ]
 

@@ -63,7 +63,7 @@ def generate_dual(
         for stem, rule_id, merge_madda, condition, factor in variants:
             forms.append(_build(interp, stem, rule_id, merge_madda, condition, factor, case, prep.definite, construct))
     return finish(word, forms, prep.warnings, ambiguous,
-                  "No dual rule applies to this word with the available information.")
+                  "No dual rule applies to this word with the available information.", prep=prep)
 
 
 def dual_paradigm(word: str, *, lexicon: Lexicon | None = None) -> dict[str, dict[str, GenerationResult]]:
@@ -92,6 +92,10 @@ def stem_variants(interp: Interpretation, *, alif_suffix: bool):
 
     cls = interp.final_class
     if cls is FinalClass.SOUND:
+        if interp.five_noun:
+            # أب ← أبَوانِ: the waw dropped from the singular returns.
+            return [(stem[:-1] + [last.without(CASE_MARKS).with_marks(FATHA), Cluster(WAW)],
+                     "dual.five_nouns_waw", False, None, 1.0)], False
         if b == TEH_MARBUTA:
             return [(swap(TEH), "dual.teh_marbuta", False, None, 1.0)], False
         if b == ALEF_HAMZA_ABOVE:

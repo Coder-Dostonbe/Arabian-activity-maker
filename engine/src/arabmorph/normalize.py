@@ -18,10 +18,14 @@ from .chars import (
     ALEF_MAQSURA,
     ALEF_WASLA,
     HEH,
+    PERSIAN_TO_ARABIC,
+    PERSIAN_YEH,
     TATWEEL,
     TEH_MARBUTA,
     VOCALIZATION_MARKS,
     YEH,
+    is_combining_mark,
+    is_quranic_mark,
 )
 
 
@@ -80,3 +84,46 @@ def normalize(text: str, options: NormalizationOptions = NormalizationOptions())
     if options.teh_marbuta_to_heh:
         out = out.replace(TEH_MARBUTA, HEH)
     return NormalizedText(original=text, normalized=out, options=options)
+
+
+# Merges spellings that are grammatically distinct (أ/ا, ى/ي, ة/ه); used only to
+# *suggest* a lexicon word ("did you mean"), never to replace the input.
+LOSSY_OPTIONS = NormalizationOptions(
+    strip_diacritics=True, unify_alef=True, alef_maqsura_to_yeh=True, teh_marbuta_to_heh=True,
+)
+
+
+def lossy_key(text: str) -> str:
+    return normalize(text, LOSSY_OPTIONS).normalized
+
+
+@dataclass(frozen=True)
+class FoldedInput:
+    """User input with presentation forms, Persian letters and Quranic marks folded away."""
+    original: str
+    text: str
+    warnings: tuple[str, ...]
+    final_persian_yeh: bool     # the last letter was ی; it may stand for ي or ى
+
+
+def fold_input(text: str) -> FoldedInput:
+    """Fold spelling variants that never change the word: every change is reported as a warning."""
+    warnings: list[str] = []
+    out = unicodedata.normalize("NFKC", text)
+    if out != unicodedata.normalize("NFC", text):
+        warnings.append("Arabic presentation forms (or other compatibility characters) were folded "
+                        "to standard letters.")
+
+    quranic = [ch for ch in out if is_quranic_mark(ch)]
+    if quranic:
+        out = "".join(ch for ch in out if not is_quranic_mark(ch))
+        warnings.append("Quranic annotation marks were removed: "
+                        + " ".join(f"U+{ord(ch):04X}" for ch in dict.fromkeys(quranic)) + ".")
+
+    letters = [ch for ch in out if not is_combining_mark(ch) and ch != TATWEEL]
+    final_persian_yeh = bool(letters) and letters[-1] == PERSIAN_YEH
+    for persian, arabic in PERSIAN_TO_ARABIC.items():
+        if persian in out:
+            out = out.replace(persian, arabic)
+            warnings.append(f"The Persian letter {persian} (U+{ord(persian):04X}) was read as the Arabic {arabic}.")
+    return FoldedInput(original=text, text=out, warnings=tuple(warnings), final_persian_yeh=final_persian_yeh)

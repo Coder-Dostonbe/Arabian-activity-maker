@@ -1,6 +1,6 @@
 {
   "package": "arabmorph-seed",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "note": "Seed entries. Records only facts the rules cannot derive from spelling: alif origin, manqus status, hamza type, diptote status, and which plural(s) a word takes. Broken plurals are stored with their vocalised form. None of these entries has been reviewed by a language specialist yet.",
   "entries": [
     {"id": "seed-0001", "lemma": "عَصَا", "pos": "noun", "gender": "feminine", "final_class": "maqsur", "alif_origin": "waw", "gloss_en": "stick",
@@ -24,7 +24,7 @@
      "plurals": [{"kind": "sound_feminine"}]},
     {"id": "seed-0011", "lemma": "ابْتِدَاء", "pos": "noun", "gender": "masculine", "final_class": "mamdud", "hamza_type": "original", "gloss_en": "beginning"},
     {"id": "seed-0012", "lemma": "سَمَاء", "pos": "noun", "gender": "feminine", "final_class": "mamdud", "hamza_type": "substituted", "gloss_en": "sky",
-     "plurals": [{"kind": "sound_feminine"}]},
+     "plurals": [{"kind": "sound_feminine", "form": "سَمَاوَات", "note": "Also written سموات (Quranic orthography سَمَٰوَات)."}]},
     {"id": "seed-0013", "lemma": "بِنَاء", "pos": "noun", "gender": "masculine", "final_class": "mamdud", "hamza_type": "substituted", "gloss_en": "building",
      "plurals": [{"kind": "broken", "form": "أَبْنِيَة"}]},
     {"id": "seed-0014", "lemma": "دُنْيَا", "pos": "noun", "gender": "feminine", "final_class": "maqsur", "gloss_en": "world, worldly life"},
@@ -80,6 +80,16 @@
      "plurals": [{"kind": "sound_masculine"}]},
     {"id": "seed-0040", "lemma": "أَحْمَد", "pos": "proper_noun", "gender": "masculine", "final_class": "sound", "diptote": true, "gloss_en": "Ahmad (name)"},
     {"id": "seed-0041", "lemma": "هَيْئَة", "pos": "noun", "gender": "feminine", "final_class": "sound", "gloss_en": "body, commission",
-     "plurals": [{"kind": "sound_feminine"}]}
+     "plurals": [{"kind": "sound_feminine"}]},
+    {"id": "seed-0042", "lemma": "أَب", "pos": "noun", "gender": "masculine", "final_class": "sound", "five_noun": true, "gloss_en": "father",
+     "plurals": [{"kind": "broken", "form": "آبَاء"}]},
+    {"id": "seed-0043", "lemma": "أَخ", "pos": "noun", "gender": "masculine", "final_class": "sound", "five_noun": true, "gloss_en": "brother",
+     "plurals": [{"kind": "broken", "form": "إِخْوَة", "note": "Usually for brothers by kinship."}, {"kind": "broken", "form": "إِخْوَان", "note": "Usually for friends or brethren."}]},
+    {"id": "seed-0044", "lemma": "حَم", "pos": "noun", "gender": "masculine", "final_class": "sound", "five_noun": true, "gloss_en": "in-law (relative of the husband)",
+     "plurals": [{"kind": "broken", "form": "أَحْمَاء"}]},
+    {"id": "seed-0045", "lemma": "فَم", "pos": "noun", "gender": "masculine", "final_class": "sound", "gloss_en": "mouth",
+     "plurals": [{"kind": "broken", "form": "أَفْوَاه"}]},
+    {"id": "seed-0046", "lemma": "اسْم", "pos": "noun", "gender": "masculine", "final_class": "sound", "gloss_en": "name; noun",
+     "plurals": [{"kind": "broken", "form": "أَسْمَاء"}]}
   ]
 }

@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from .clusters import join_clusters
+from .chars import ALEF, DAMMA, FATHA, KASRA, WAW, YEH
+from .classify import Interpretation
+from .clusters import Cluster, join_clusters
 from .declension import decline
 from .lexicon import Lexicon
 from .normalize import strip_diacritics
-from .orthography import add_article
+from .orthography import add_article, add_mark
 from .pipeline import Prepared, finish, prepare
 from .rules import get_rule
 from .types import Case, FinalClass, GeneratedForm, GenerationResult, HamzaType, Number
@@ -47,6 +49,10 @@ def generate_singular(
                 warnings.append("Assumed fully declinable (منصرف); proper names, أفعل adjectives and "
                                 "some patterns are diptote.")
 
+        if interp.five_noun and construct:
+            forms.append(_five_noun_construct(interp, case))
+            continue
+
         for diptote, condition, factor in options:
             declined = decline(interp.stem, case, definite=definite, construct=construct,
                                diptote=diptote, final_class=cls)
@@ -68,4 +74,30 @@ def generate_singular(
                 diptote=diptote,
             ))
 
-    return finish(word, forms, prep.warnings, ambiguous, "No declension rule applies to this word.")
+    return finish(word, forms, prep.warnings, ambiguous, "No declension rule applies to this word.", prep=prep)
+
+
+_FIVE_NOUN_ENDINGS = {Case.NOMINATIVE: (DAMMA, WAW), Case.ACCUSATIVE: (FATHA, ALEF), Case.GENITIVE: (KASRA, YEH)}
+
+
+def _five_noun_construct(interp: Interpretation, case: Case) -> GeneratedForm:
+    """أبو زيدٍ / أبا زيدٍ / أبي زيدٍ: in the construct state the five nouns decline with letters."""
+    vowel, letter = _FIVE_NOUN_ENDINGS[case]
+    stem = list(interp.stem)
+    stem[-1] = add_mark(stem[-1], vowel)
+    vocalized = join_clusters(stem + [Cluster(letter)])
+    return GeneratedForm(
+        text=strip_diacritics(vocalized),
+        vocalized=vocalized,
+        number=Number.SINGULAR,
+        case=case,
+        definite=False,
+        construct=True,
+        rule_ids=("decl.five_nouns",),
+        source=interp.source,
+        confidence=round(min(interp.confidence, get_rule("decl.five_nouns").confidence), 2),
+        condition="If the following genitive is a noun or a pronoun other than the speaker's ـي "
+                  "(أبوك، أبو زيدٍ); with ـي (أبي = my father) the ending is implicit.",
+        warnings=interp.warnings,
+        diptote=False,
+    )

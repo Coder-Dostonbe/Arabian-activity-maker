@@ -37,6 +37,7 @@ class Interpretation:
     condition: str | None = None
     entry_id: str | None = None
     warnings: tuple[str, ...] = ()
+    five_noun: bool = False
 
 
 def interpret(parsed: ParsedNoun, lexicon: Lexicon) -> tuple[list[Interpretation], list[str]]:
@@ -93,6 +94,7 @@ def _from_entry(e: LexiconEntry) -> Interpretation:
         alif_origin=e.alif_origin,
         hamza_type=e.hamza_type,
         entry_id=e.id,
+        five_noun=e.five_noun,
         warnings=() if e.verified else (f"Lexicon entry {e.id} has not been reviewed by a specialist.",),
     )
 

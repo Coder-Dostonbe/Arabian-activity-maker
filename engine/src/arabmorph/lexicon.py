@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from importlib import resources
 
 from .clusters import Cluster, split_clusters
-from .normalize import strip_diacritics
+from .normalize import lossy_key, strip_diacritics
 from .types import AlifOrigin, FinalClass, Gender, HamzaType, PluralKind
 
 
@@ -23,7 +23,8 @@ class PluralSpec:
 
     Broken plurals carry their vocalised form. Sound plurals usually carry no
     form: the entry only asserts that the noun takes that plural, and the rules
-    build it.
+    build it. A sound feminine plural may pin the attested `form` when the rules
+    allow more than one spelling but usage settled on one (سماء ← سماوات).
     """
     kind: PluralKind
     form: str | None = None
@@ -35,6 +36,10 @@ class PluralSpec:
         kind = PluralKind(d["kind"])
         if kind is PluralKind.BROKEN and not d.get("form"):
             raise ValueError("a broken plural needs an explicit form")
+        if kind is PluralKind.SOUND_MASCULINE and d.get("form"):
+            raise ValueError("a sound masculine plural cannot pin a form")
+        if kind is PluralKind.SOUND_FEMININE and d.get("form") and not strip_diacritics(d["form"]).endswith("ات"):
+            raise ValueError("a pinned sound feminine plural must end in ـات")
         return cls(kind=kind, form=d.get("form"), diptote=bool(d.get("diptote", False)), note=d.get("note", ""))
 
 
@@ -49,6 +54,7 @@ class LexiconEntry:
     hamza_type: HamzaType | None = None
     gloss_en: str = ""
     diptote: bool = False          # the singular is ممنوع من الصرف
+    five_noun: bool = False        # one of الأسماء الخمسة (أب، أخ، حم): waw returns in the dual and construct
     plurals: tuple[PluralSpec, ...] = ()
     source: str = "seed"
     verified: bool = False
@@ -73,6 +79,7 @@ class LexiconEntry:
             hamza_type=HamzaType(d["hamza_type"]) if d.get("hamza_type") else None,
             gloss_en=d.get("gloss_en", ""),
             diptote=bool(d.get("diptote", False)),
+            five_noun=bool(d.get("five_noun", False)),
             plurals=tuple(PluralSpec.from_dict(p) for p in d.get("plurals", ())),
             source=source,
             verified=bool(d.get("verified", False)),
@@ -83,14 +90,28 @@ class Lexicon:
     def __init__(self, entries=()):
         self._by_key: dict[str, list[LexiconEntry]] = {}
         self._by_id: dict[str, LexiconEntry] = {}
+        self._by_lossy: dict[str, list[LexiconEntry]] = {}
+        self._by_plural: dict[str, list[LexiconEntry]] = {}
         for e in entries:
             if e.id in self._by_id:
                 raise ValueError(f"duplicate lexicon id {e.id}")
             self._by_key.setdefault(e.key, []).append(e)
+            self._by_lossy.setdefault(lossy_key(e.key), []).append(e)
+            for p in e.plurals:
+                if p.form:
+                    self._by_plural.setdefault(strip_diacritics(p.form), []).append(e)
             self._by_id[e.id] = e
 
     def lookup(self, bare_word: str) -> list[LexiconEntry]:
         return list(self._by_key.get(strip_diacritics(bare_word), ()))
+
+    def lookup_lossy(self, bare_word: str) -> list[LexiconEntry]:
+        """Entries whose spelling differs from `bare_word` only in hamza seat, ى/ي or ة/ه."""
+        return list(self._by_lossy.get(lossy_key(bare_word), ()))
+
+    def singulars_of(self, bare_plural: str) -> list[LexiconEntry]:
+        """Entries that record `bare_plural` as one of their plural forms."""
+        return list(self._by_plural.get(strip_diacritics(bare_plural), ()))
 
     def get(self, entry_id: str) -> LexiconEntry | None:
         return self._by_id.get(entry_id)

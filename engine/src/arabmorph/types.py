@@ -111,6 +111,7 @@ class GenerationResult:
     warnings: tuple[str, ...] = ()
     errors: tuple[str, ...] = ()
     assumptions: tuple[str, ...] = field(default=())
+    suggestions: tuple[str, ...] = ()   # "did you mean": lexicon words close to the input; never applied
 
     def to_dict(self) -> dict:
         return {
@@ -120,4 +121,5 @@ class GenerationResult:
             "warnings": list(self.warnings),
             "errors": list(self.errors),
             "assumptions": list(self.assumptions),
+            "suggestions": list(self.suggestions),
         }

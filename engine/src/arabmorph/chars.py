@@ -47,6 +47,17 @@ ALEF_MAQSURA = "ى"      # ى
 YEH = "ي"               # ي
 ALEF_WASLA = "ٱ"        # ٱ
 
+# Persian-keyboard letters that users type in place of their Arabic counterparts.
+PERSIAN_KAF = "ک"      # ک  U+06A9
+PERSIAN_YEH = "ی"      # ی  U+06CC
+KAF = "ك"              # ك
+PERSIAN_TO_ARABIC = {PERSIAN_KAF: KAF, PERSIAN_YEH: YEH}
+
+
+def is_quranic_mark(ch: str) -> bool:
+    """Quranic annotation signs (small high letters, pause and recitation marks)."""
+    return 0x0610 <= ord(ch) <= 0x061A or 0x06D6 <= ord(ch) <= 0x06ED
+
 ALEF_VARIANTS = frozenset({ALEF, ALEF_MADDA, ALEF_HAMZA_ABOVE, ALEF_HAMZA_BELOW, ALEF_WASLA})
 HAMZA_LETTERS = frozenset({HAMZA, ALEF_HAMZA_ABOVE, ALEF_HAMZA_BELOW, WAW_HAMZA, YEH_HAMZA, ALEF_MADDA})
 

@@ -17,12 +17,12 @@ import unicodedata
 from functools import lru_cache
 
 from arabmorph import Case, Number, PluralKind, Status, generate
-from arabmorph.normalize import strip_diacritics
+from arabmorph.chars import is_arabic_letter
+from arabmorph.normalize import fold_input, strip_diacritics
 
 _ARABIC = re.compile(r"[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]")
 _OTHER = re.compile(r"[A-Za-zÀ-ɏЀ-ӿ]")
 _CYRILLIC = re.compile(r"[Ѐ-ӿ]")
-_ARABIC_LETTER = re.compile(r"[ء-يٱ-ۓ]")
 
 # Tokens: brackets and list separators stand alone so "(كُتُبٌ)" and "شيوخ، أشياخ" split cleanly.
 _TOKEN = re.compile(r"[()\[\]/،,؛;]|[^\s()\[\]/،,؛;]+")
@@ -51,9 +51,14 @@ _QUESTION_WORDS = {
 _WORDS = re.compile(r"[^\W\d_][\w'’ʻʼ`-]*")
 
 
+def _arabic_letters(text: str) -> int:
+    """Letters the engine accepts as Arabic (after folding presentation forms and Persian ک / ی)."""
+    return sum(1 for ch in fold_input(text).text if is_arabic_letter(ch))
+
+
 def script(text: str) -> str:
     """"ar" for mostly-Arabic text, "uz" for mostly Latin / Cyrillic, "" for neither (digits, punctuation)."""
-    ar, other = len(_ARABIC_LETTER.findall(text)), len(_OTHER.findall(text))
+    ar, other = _arabic_letters(text), len(_OTHER.findall(text))
     if not ar and not other:
         return ""
     return "ar" if ar >= other else "uz"
@@ -90,7 +95,7 @@ def segments(text: str) -> list[tuple[str, str]]:
     out: list[list] = []
     pending: list[str] = []  # script-less tokens wait to see which side they belong to
     for tok in tokens:
-        s = "ar" if _ARABIC.search(tok) and _ARABIC_LETTER.search(tok) else ("uz" if _OTHER.search(tok) else "")
+        s = "ar" if _ARABIC.search(tok) and _arabic_letters(tok) else ("uz" if _OTHER.search(tok) else "")
         if not s:
             pending.append(tok)
             continue

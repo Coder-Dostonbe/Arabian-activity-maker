@@ -161,3 +161,9 @@ def test_shipped_samples_import_unchanged():
     for s, src in zip(r["sets"], (make_samples.DUAL, make_samples.TEST)):
         assert [i["prompt"] for i in s["items"]] == [row[0] for row in src[1:]]
         assert all(i["translation"] == "" and "form" not in i for i in s["items"])
+
+
+@pytest.mark.parametrize("arabic", ["ﻛﺘﺎﺏ", "مستشفی", "کتاب"])
+def test_spellings_the_engine_folds_count_as_arabic(arabic):
+    assert vocab.script(arabic) == "ar"
+    assert pairs(rows(f"{arabic} – kitob")) == [(arabic, "kitob")]

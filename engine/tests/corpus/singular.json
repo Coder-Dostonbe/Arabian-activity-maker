@@ -40,6 +40,10 @@
     {"id": "maqsur-01", "category": "maqsur, indefinite", "word": "فتى", "lexicon": "seed", "state": "indefinite", "rule": "decl.maqsur", "status": "ok", "ref": "G",
      "expected_vocalized": {"nominative": ["فَتًى"], "accusative": ["فَتًى"], "genitive": ["فَتًى"]}},
     {"id": "maqsur-02", "category": "maqsur, definite", "word": "مستشفى", "lexicon": "seed", "state": "definite", "rule": "decl.maqsur", "status": "ok", "ref": "G",
-     "expected_vocalized": {"nominative": ["الْمُسْتَشْفَى"], "genitive": ["الْمُسْتَشْفَى"]}}
+     "expected_vocalized": {"nominative": ["الْمُسْتَشْفَى"], "genitive": ["الْمُسْتَشْفَى"]}},
+    {"id": "five-01", "category": "five nouns in the construct state", "word": "أب", "lexicon": "seed", "state": "construct", "rule": "decl.five_nouns", "status": "ok", "ref": "G", "expected_vocalized": {"nominative": ["أَبُو"], "accusative": ["أَبَا"], "genitive": ["أَبِي"]}},
+    {"id": "five-02", "category": "five nouns outside the construct decline with vowels", "word": "أخ", "lexicon": "seed", "state": "indefinite", "rule": "decl.triptote", "status": "ok", "ref": "G", "expected_vocalized": {"nominative": ["أَخٌ"], "accusative": ["أَخًا"]}},
+    {"id": "clitic-01", "category": "clitic بال is never declined", "word": "بالكتاب", "lexicon": "seed", "state": "indefinite", "status": "error", "ref": "G"},
+    {"id": "input-01", "category": "a lexicon broken plural is not a singular", "word": "كتب", "lexicon": "seed", "state": "indefinite", "status": "error", "ref": "G"}
   ]
 }

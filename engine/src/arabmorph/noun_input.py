@@ -22,6 +22,7 @@ from .chars import (
     is_arabic_letter,
 )
 from .clusters import Cluster, bare, has_any_marks, split_clusters
+from .normalize import fold_input
 
 
 class InputError(ValueError):
@@ -37,13 +38,15 @@ class ParsedNoun:
     final_kasratan: bool        # final letter carried kasratan (may hide a dropped manqus yeh)
     vocalized: bool
     warnings: tuple[str, ...] = ()
+    final_persian_yeh: bool = False   # the final ي was typed as Persian ی (may stand for ى)
 
 
 _DUAL_PLURAL_ENDINGS = ("ان", "ين", "ون", "ات")
 
 
 def parse_noun(word: str) -> ParsedNoun:
-    text = unicodedata.normalize("NFC", word).strip()
+    folded = fold_input(unicodedata.normalize("NFC", word).strip())
+    text = folded.text.strip()
     if not text:
         raise InputError("Input is empty.")
     if any(ch.isspace() for ch in text):
@@ -56,7 +59,7 @@ def parse_noun(word: str) -> ParsedNoun:
     if foreign:
         raise InputError(f"Input contains non-Arabic characters: {' '.join(foreign)}")
 
-    warnings: list[str] = []
+    warnings: list[str] = list(folded.warnings)
     definite = False
     if len(clusters) >= 4 and clusters[0].base in (ALEF, ALEF_WASLA) and clusters[1].base == LAM:
         definite = True
@@ -92,4 +95,5 @@ def parse_noun(word: str) -> ParsedNoun:
         final_kasratan=final_kasratan,
         vocalized=has_any_marks(split_clusters(text)),
         warnings=tuple(warnings),
+        final_persian_yeh=folded.final_persian_yeh,
     )

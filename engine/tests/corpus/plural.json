@@ -88,6 +88,13 @@
     {"id": "sfp-16", "category": "unknown ة noun: conditional candidate only", "word": "حديقة", "lexicon": "none", "state": "indefinite", "rule": "plural.fem.sound", "status": "ambiguous", "ref": "G", "source": "heuristic",
      "expected": {"nominative": ["حديقات"]}},
     {"id": "sfp-17", "category": "broken + sound feminine (valid alternatives)", "word": "غرفة", "lexicon": "seed", "state": "indefinite", "rule": "plural.fem.sound", "status": "ok", "ref": "G",
-     "expected": {"nominative": ["غرف", "غرفات"], "accusative": ["غرفا", "غرفات"]}}
+     "expected": {"nominative": ["غرف", "غرفات"], "accusative": ["غرفا", "غرفات"]}},
+    {"id": "sfp-attested-01", "category": "pinned attested form comes first", "word": "سماء", "lexicon": "seed", "state": "indefinite", "rule": "plural.fem.attested_form", "status": "ok", "ref": "G", "expected_vocalized": {"nominative": ["سَمَاوَاتٌ", "سَمَاءَاتٌ"], "genitive": ["سَمَاوَاتٍ", "سَمَاءَاتٍ"]}},
+    {"id": "sfp-attested-02", "category": "analogical variant kept with low confidence", "word": "سماء", "lexicon": "seed", "state": "definite", "rule": "plural.fem.analogical_variant", "status": "ok", "ref": "G", "expected_includes": {"nominative": ["السماءات"]}},
+    {"id": "five-01", "category": "five nouns: broken plural", "word": "أب", "lexicon": "seed", "state": "indefinite", "rule": "plural.broken.lexicon", "status": "ok", "ref": "G", "expected_vocalized": {"nominative": ["آبَاءٌ"]}},
+    {"id": "five-02", "category": "five nouns: two broken plurals", "word": "أخ", "lexicon": "seed", "state": "indefinite", "rule": "plural.broken.lexicon", "status": "ok", "ref": "G", "expected": {"nominative": ["إخوة", "إخوان"]}},
+    {"id": "input-01", "category": "already a sound feminine plural", "word": "شجرات", "lexicon": "seed", "state": "indefinite", "status": "error", "ref": "G"},
+    {"id": "input-02", "category": "already a sound masculine plural (manqus)", "word": "محامون", "lexicon": "seed", "state": "indefinite", "status": "error", "ref": "G"},
+    {"id": "input-03", "category": "already a broken plural", "word": "مدارس", "lexicon": "seed", "state": "indefinite", "status": "error", "ref": "G"}
   ]
 }

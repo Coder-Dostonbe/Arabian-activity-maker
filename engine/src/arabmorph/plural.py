@@ -30,7 +30,7 @@ from .chars import (
     YEH_HAMZA,
 )
 from .classify import Interpretation
-from .clusters import Cluster, join_clusters, split_clusters
+from .clusters import Cluster, bare, join_clusters, split_clusters
 from .declension import decline, final_class_by_spelling
 from .dual import stem_variants
 from .lexicon import Lexicon, LexiconEntry, PluralSpec
@@ -125,12 +125,13 @@ def generate_plural(
             ambiguous = True
 
     if reasons and not forms:
-        return finish(word, forms, warnings, ambiguous, " ".join(dict.fromkeys(reasons)))
+        return finish(word, forms, warnings, ambiguous, " ".join(dict.fromkeys(reasons)), prep=prep)
     warnings.extend(reasons)
     return finish(
         word, forms, warnings, ambiguous,
         "No plural can be determined: the word has no lexicon entry with a recorded plural, and the "
         "plural type cannot be inferred from spelling. Pass a plural kind to apply a sound-plural rule.",
+        prep=prep,
     )
 
 
@@ -140,6 +141,12 @@ def _forms(interp: Interpretation, entry: LexiconEntry | None, spec: PluralSpec,
     """Forms for one plural spec; reasons for producing none are appended to `reasons`."""
     if spec.kind is PluralKind.BROKEN:
         return [_broken(interp, spec, req, source, condition, cap)], False
+    if entry is not None and entry.five_noun:
+        reasons.append("Sound plurals of the five nouns (أب، أخ، حم) are not supported; "
+                       "their plurals are broken (آباء، إخوة).")
+        return [], False
+    if spec.kind is PluralKind.SOUND_FEMININE and spec.form:
+        return _attested_feminine(interp, entry, spec, req, source, condition, cap), False
 
     extra: list[str] = []
     if spec.kind is PluralKind.SOUND_FEMININE:
@@ -171,6 +178,29 @@ def _broken(interp, spec: PluralSpec, req: _Request, source, condition, cap) -> 
     rules = ("plural.broken.lexicon", *declined.rule_ids)
     conds = [c for c in (interp.condition, condition, spec.note or None) if c]
     return _form(interp, declined.clusters, rules, req, source, spec, cap, conds, list(interp.warnings))
+
+
+ANALOGICAL_CONFIDENCE = 0.5
+
+
+def _attested_feminine(interp, entry: LexiconEntry, spec: PluralSpec, req: _Request, source,
+                       condition, cap) -> list[GeneratedForm]:
+    """The pinned, attested form first; other spellings the rules allow only as low-confidence variants."""
+    pinned = Variant(split_clusters(spec.form)[:-2], ("plural.fem.sound", "plural.fem.attested_form"),
+                     warnings=(spec.note,) if spec.note else ())
+    body, rules = _attach_feminine(pinned, req)
+    conds = [c for c in (interp.condition, condition) if c]
+    forms = [_form(interp, body, rules, req, source, spec, cap, conds, [*interp.warnings, *pinned.warnings])]
+    attested = strip_diacritics(spec.form)
+    variants, _ = _feminine_variants(interp, entry)
+    for v in variants:
+        body, rules = _attach_feminine(v, req)
+        if bare(body).endswith(attested):
+            continue
+        note = (f"Permitted by analogy with the dual, but rarely used; the attested plural is «{attested}».")
+        forms.append(_form(interp, body, (*rules, "plural.fem.analogical_variant"), req, source, spec,
+                           min(cap, ANALOGICAL_CONFIDENCE), [*conds, note], list(interp.warnings)))
+    return forms
 
 
 def _feminine_variants(interp: Interpretation, entry: LexiconEntry | None) -> tuple[list[Variant], bool]:
