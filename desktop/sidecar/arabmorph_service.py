@@ -33,6 +33,9 @@ from arabmorph.pipeline import default_lexicon
 
 import activity
 import importers
+import office_writer
+import user_lexicon
+import verify
 
 MAX_WORD = 64
 MAX_NAME = 260
@@ -171,6 +174,74 @@ def op_build_items(params: dict) -> dict:
     )
 
 
+def op_verify_items(params: dict) -> list:
+    items = params.get("items")
+    if not isinstance(items, list) or not items or len(items) > verify.MAX_ITEMS:
+        raise BadRequest(f"'items' must be a list of 1 to {verify.MAX_ITEMS} items")
+    for i in items:
+        if not isinstance(i, dict) or not all(isinstance(i.get(k), str) and len(i[k]) <= verify.MAX_TEXT
+                                              for k in ("prompt", "answer")):
+            raise BadRequest(f"every item needs a 'prompt' and an 'answer' of at most {verify.MAX_TEXT} characters")
+    return verify.verify_items(items)
+
+
+def _entry(params: dict) -> dict:
+    entry = params.get("entry")
+    if not isinstance(entry, dict) or len(json.dumps(entry)) > 4000:
+        raise BadRequest("'entry' must be a lexicon entry object")
+    return entry
+
+
+def op_user_lexicon(_params: dict) -> dict:
+    try:
+        return {"entries": user_lexicon.entries(), "configured": user_lexicon.path() is not None}
+    except user_lexicon.UserLexiconError as exc:
+        raise BadRequest(str(exc), "user_lexicon") from None
+
+
+def op_user_lexicon_check(params: dict) -> dict:
+    entry, problems = user_lexicon.check(_entry(params))
+    return {"entry": entry, "problems": problems}
+
+
+def op_user_lexicon_add(params: dict) -> dict:
+    try:
+        return user_lexicon.add(_entry(params))
+    except user_lexicon.UserLexiconError as exc:
+        raise BadRequest(str(exc), "user_lexicon") from None
+
+
+def op_user_lexicon_remove(params: dict) -> dict:
+    entry_id = params.get("id")
+    if not isinstance(entry_id, str) or not entry_id.startswith("user-") or len(entry_id) > 40:
+        raise BadRequest("'id' must be a user lexicon id")
+    try:
+        return {"removed": user_lexicon.remove(entry_id)}
+    except user_lexicon.UserLexiconError as exc:
+        raise BadRequest(str(exc), "user_lexicon") from None
+
+
+MAX_SHEETS = 20
+MAX_ROWS = 20000
+SHEET_FORBIDDEN = set("[]:*?/" + chr(92))
+
+
+def op_export_xlsx(params: dict) -> dict:
+    """A workbook from {sheet name: rows of cells}, returned as base64 for the shell to save."""
+    sheets = params.get("sheets")
+    if not isinstance(sheets, dict) or not sheets or len(sheets) > MAX_SHEETS:
+        raise BadRequest(f"'sheets' must map 1 to {MAX_SHEETS} sheet names to rows")
+    clean = {}
+    for name, rows in sheets.items():
+        if not isinstance(rows, list) or len(rows) > MAX_ROWS:
+            raise BadRequest(f"each sheet must be a list of at most {MAX_ROWS} rows")
+        # Excel sheet names: at most 31 characters, none of the characters Excel forbids in them.
+        title = "".join(c for c in str(name) if c not in SHEET_FORBIDDEN)[:31] or "Sheet"
+        clean[title] = [[str(c)[:1000] if c is not None else "" for c in row] if isinstance(row, list) else []
+                        for row in rows]
+    return {"data": base64.b64encode(office_writer.xlsx(clean)).decode("ascii")}
+
+
 OPS = {
     "version": op_version,
     "generate": op_generate,
@@ -180,6 +251,12 @@ OPS = {
     "lexicon": op_lexicon,
     "import_file": op_import_file,
     "build_items": op_build_items,
+    "verify_items": op_verify_items,
+    "user_lexicon": op_user_lexicon,
+    "user_lexicon_check": op_user_lexicon_check,
+    "user_lexicon_add": op_user_lexicon_add,
+    "user_lexicon_remove": op_user_lexicon_remove,
+    "export_xlsx": op_export_xlsx,
 }
 
 
@@ -215,7 +292,9 @@ def main() -> int:
     # utf-8-sig: some callers (e.g. Windows PowerShell pipes) prefix the stream with a BOM.
     stdin = open(sys.stdin.fileno(), encoding="utf-8-sig", closefd=False)
     stdout = open(sys.stdout.fileno(), "w", encoding="utf-8", closefd=False, newline="\n")
-    default_lexicon()  # load once at startup, not on the first request
+    for problem in user_lexicon.load():  # bundled + the teacher's own entries, once at startup
+        print(problem, file=sys.stderr, flush=True)
+    default_lexicon()
     for line in stdin:
         if not line.strip():
             continue

@@ -17,6 +17,8 @@ export const uz = {
     lexicon: "Lug'at",
     rules: "Qoidalar",
     about: "Dastur haqida",
+    analysis: "Tahlil",
+    results: "Natijalar",
     language: "Til",
   },
 
@@ -257,6 +259,87 @@ export const uz = {
       "Bir nechta o'qilishi bor so'zlar (masalan, مدرسة) yordamchi tomonidan o'tkazib yuboriladi.",
       "Dvigatel ogohlantirishlari va qoida izohlari ingliz va arab tillarida.",
     ],
+  },
+
+  models: {
+    label: "Claude modeli",
+    names: { "claude-haiku-5-5": "Claude Haiku 5.5", "claude-sonnet-5-5": "Claude Sonnet 5.5", "claude-opus-5-5": "Claude Opus 5.5" } as Record<string, string>,
+    cost: {
+      "claude-haiku-5-5": "Eng arzon va tez. 1 mln token: $0.10 kirish / $0.50 chiqish. 10 ta savol taxminan 1 sentdan kam.",
+      "claude-sonnet-5-5": "O'rtacha. 1 mln token: $2 / $10. 10 ta savol taxminan bir necha sent.",
+      "claude-opus-5-5": "Eng kuchli va eng qimmat. 1 mln token: $4 / $20. 10 ta savol taxminan 5–15 sent.",
+    } as Record<string, string>,
+  },
+
+  check: {
+    badge: { engine_agrees: "Dvigatel: to'g'ri", engine_disagrees: "Dvigatel: boshqacha", not_checkable: "Tekshirilmadi" } as Record<string, string>,
+    title: {
+      engine_agrees: "Dvigatel javobni o'zi ham shunday yasaydi",
+      engine_disagrees: "Dvigatel bu shaklni boshqacha yasaydi — qatorni tasdiqlashdan oldin tekshiring",
+      not_checkable: "Dvigatel qaysi shakl so'ralganini aniqlay olmadi",
+    } as Record<string, string>,
+    engineSays: "Dvigatel:",
+  },
+
+  tutor: { label: "Qoida" },
+
+  analysis: {
+    title: "Tahlil",
+    intro: "So'zni yozing: dvigatel uning birlik, ikkilik va ko'plik shakllarini uch kelishik va uch holatda ko'rsatadi. Katakni bossangiz, shakl qaysi qoidaga ko'ra yasalgani, manbasi va ishonchliligi chiqadi.",
+    placeholder: "كتاب",
+    run: "Tahlil qilish",
+    didYouMean: "Balki shu so'z nazarda tutilgandir:",
+    reverse: "Yozilgan shakl",
+    noAnalysis: "Bu shaklni hech bir birlik so'zdan yasab bo'lmadi.",
+    singular: "Birligi",
+    number: "Son",
+    state: "Holat",
+    case: "Kelishik",
+    notInLexicon: "lug'atda yo'q",
+    ambiguous: "Bir nechta o'qilish bor: kontekstsiz ulardan birini tanlab bo'lmaydi.",
+    ambiguousShort: "bir necha o'qilish",
+    askTitle: "Claude'dan so'rash",
+    askIntro: "Bu so'z lug'atda yo'q. Claude uning jinsi, oxiri, mamnu' min as-sarf ekani va ko'pligini taklif qiladi. Taklif lug'at sahifasidagi navbatga tushadi va siz tasdiqlamaguningizcha ishlatilmaydi.",
+    needKey: "Avval «To'plamlar → AI yordamchi → Claude» bo'limida API kalitini saqlang.",
+    ask: "Claude'dan so'rash",
+    queued: (lemma: string) => `«${lemma}» taklifi ko'rib chiqish navbatiga qo'shildi.`,
+    clickCell: "Batafsil ma'lumot uchun katakni bosing.",
+    sources: { rule: "qoida", lexicon: "lug'at", heuristic: "imlo bo'yicha taxmin", asserted: "siz ko'rsatgan tur" } as Record<string, string>,
+    condition: "Sharti",
+    confidence: (n: number) => `ishonch ${n}%`,
+  },
+
+  queue: {
+    title: "Ko'rib chiqish navbati",
+    intro: "Claude taklif qilgan lug'at yozuvlari. Tasdiqlangan yozuv sizning lug'atingizga (verified: false, source: user) qo'shiladi va dvigatel uni darhol ishlatadi.",
+    asked: (word: string, model: string) => `«${word}» uchun · ${model}`,
+    approve: "Tasdiqlash",
+    reject: "Rad etish",
+    added: (lemma: string, homographs: number) =>
+      `«${lemma}» lug'atingizga qo'shildi.` + (homographs ? ` Lug'atda yana ${homographs} ta shunday yoziladigan so'z bor.` : ""),
+    mine: "Sizning yozuvingiz",
+  },
+
+  results: {
+    title: "Natijalar",
+    intro: "Har bir yakunlangan test shu yerda saqlanadi: sana, to'plam, sinf yoki guruh, ball va har bir savol natijasi. Dvigatel yasagan savollar bo'yicha qaysi qoidada ko'p xato qilinayotgani ham ko'rinadi.",
+    group: "Sinf yoki guruh",
+    groupPlaceholder: "Masalan: 7-B",
+    saved: "Natija saqlandi.",
+    allGroups: "Barcha guruhlar",
+    export: "Excel'ga eksport (.xlsx)",
+    exported: (path: string) => `Saqlandi: ${path}`,
+    empty: "Hali saqlangan test natijasi yo'q.",
+    confirmDelete: "Rostdan o'chirilsinmi?",
+    byRule: "Qoidalar bo'yicha xatolar",
+    byRuleHint: "Faqat dvigatel yasagan savollar hisobga olinadi; har bir savol shaklni belgilagan asosiy qoida bo'yicha sanaladi.",
+    noRules: "Bu testlarda dvigatel yasagan savol yo'q.",
+    cols: {
+      date: "Sana", set: "To'plam", group: "Guruh", correct: "To'g'ri", wrong: "Noto'g'ri", unanswered: "Javobsiz",
+      total: "Jami", score: "Natija", question: "Savol", answer: "Javob", outcome: "Natija", rule: "Qoida",
+      ruleName: "Qoida nomi", asked: "So'ralgan", errorRate: "Xato ulushi",
+    },
+    sheets: { runs: "Testlar", questions: "Savollar", rules: "Qoidalar" },
   },
 };
 

@@ -61,3 +61,43 @@ def test_service_build_items_op():
 def test_build_items_validation(params, needle):
     r = svc.handle(json.dumps({"id": 1, "op": "build_items", "params": params}))
     assert not r["ok"] and needle in r["error"]
+
+
+# --- rule-error distractors -------------------------------------------------------
+
+STATES = ("indefinite", "definite", "construct")
+
+
+@pytest.mark.parametrize("word,number,case,expected", [
+    ("كتاب", Number.PLURAL, Case.ACCUSATIVE, "كِتَابَاتٍ"),      # sound plural instead of broken
+    ("صحراء", Number.DUAL, Case.NOMINATIVE, "صَحْرَاءَانِ"),     # hamza not changed to waw
+    ("مستشفى", Number.DUAL, Case.NOMINATIVE, "مُسْتَشْفَاانِ"),  # alif not changed to yeh
+    ("عصا", Number.DUAL, Case.NOMINATIVE, "عَصَاانِ"),
+])
+def test_rule_error_distractors(word, number, case, expected):
+    (item,) = build_items([word], number, case, "indefinite")["items"]
+    assert nfc(expected) in item["options"]
+
+
+def test_wrong_case_suffix_is_no_real_case_form():
+    (item,) = build_items(["معلمة"], Number.PLURAL, Case.ACCUSATIVE, "indefinite")["items"]
+    real = {nfc(f) for f in ("مُعَلِّمَاتٌ", "مُعَلِّمَاتٍ")}
+    wrong = [o for o in item["options"] if o.startswith(nfc("مُعَلِّمَات")) and o not in real and "ال" not in o]
+    assert wrong, item["options"]
+
+
+def test_items_carry_the_rules_behind_the_answer():
+    (item,) = build_items(["صحراء"], Number.DUAL, Case.NOMINATIVE, "indefinite")["items"]
+    assert item["rules"][0] == "dual.mamdud.feminine"
+
+
+def test_no_distractor_is_ever_a_correct_answer():
+    """Over the whole seed lexicon: options are distinct and never one of the item's correct forms."""
+    words = [e.lemma for e in svc.default_lexicon()]
+    for number in Number:
+        for case in Case:
+            for state in STATES:
+                for item in build_items(words, number, case, state)["items"]:
+                    answers = set(item["answer"].split(" / "))
+                    assert not answers & set(item["options"]), (item["prompt"], number, case, state)
+                    assert len(item["options"]) == len(set(item["options"]))

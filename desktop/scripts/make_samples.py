@@ -6,9 +6,11 @@ plurals and duals written beside the word. The import sorts it into word / trans
 Run: python desktop/scripts/make_samples.py
 """
 
+import sys
 from pathlib import Path
 
-from office_writer import docx, xlsx
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "sidecar"))
+from office_writer import docx, xlsx  # noqa: E402
 
 OUT = Path(__file__).resolve().parents[1] / "samples"
 

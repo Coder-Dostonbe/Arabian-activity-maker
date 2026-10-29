@@ -13,7 +13,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use serde_json::{json, Value};
 use tauri::State;
 
-const NAMES: &[&str] = &["sets", "settings"];
+const NAMES: &[&str] = &["sets", "settings", "results", "lexicon_queue"];
 const BACKUPS: usize = 5;
 const MAX_BYTES: usize = 32 * 1024 * 1024;
 
@@ -125,6 +125,60 @@ pub fn backup_export(app: tauri::AppHandle, contents: String) -> Result<String, 
     Ok(path.display().to_string())
 }
 
+/// Save an exported file (base64, e.g. an .xlsx from the engine service) to Downloads and show it.
+#[tauri::command(async)]
+pub fn export_file(app: tauri::AppHandle, file_name: String, data: String) -> Result<String, String> {
+    use tauri::Manager;
+    let safe: String = file_name
+        .chars()
+        .filter(|c| c.is_alphanumeric() || matches!(c, '-' | '_' | '.' | ' '))
+        .take(120)
+        .collect();
+    if safe.is_empty() || safe.starts_with('.') || !safe.contains('.') {
+        return Err("invalid file name".into());
+    }
+    let bytes = decode_base64(&data).ok_or("the file data is not valid base64")?;
+    let dir = app.path().download_dir().map_err(|e| format!("cannot find the Downloads folder: {e}"))?;
+    fs::create_dir_all(&dir).map_err(|e| format!("cannot create {}: {e}", dir.display()))?;
+    let path = dir.join(safe);
+    write_atomic(&path, &bytes).map_err(|e| format!("cannot write {}: {e}", path.display()))?;
+    let _ = std::process::Command::new("explorer").arg(format!("/select,{}", path.display())).spawn();
+    Ok(path.display().to_string())
+}
+
+/// Standard base64 (with padding), without a crate.
+fn decode_base64(text: &str) -> Option<Vec<u8>> {
+    let value = |c: u8| -> Option<u32> {
+        Some(match c {
+            b'A'..=b'Z' => c - b'A',
+            b'a'..=b'z' => c - b'a' + 26,
+            b'0'..=b'9' => c - b'0' + 52,
+            b'+' => 62,
+            b'/' => 63,
+            _ => return None,
+        } as u32)
+    };
+    let bytes = text.trim().as_bytes();
+    if bytes.len() % 4 != 0 {
+        return None;
+    }
+    let mut out = Vec::with_capacity(bytes.len() / 4 * 3);
+    for chunk in bytes.chunks(4) {
+        let pad = chunk.iter().rev().take_while(|&&c| c == b'=').count();
+        if pad > 2 {
+            return None;
+        }
+        let mut n = 0u32;
+        for &c in &chunk[..4 - pad] {
+            n = (n << 6) | value(c)?;
+        }
+        n <<= 6 * pad as u32;
+        let decoded = [(n >> 16) as u8, (n >> 8) as u8, n as u8];
+        out.extend_from_slice(&decoded[..3 - pad]);
+    }
+    Some(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -170,5 +224,13 @@ mod tests {
         assert!(store.save("sets", "not json").is_err());
         assert!(!store.dir.join("sets.json").exists());
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn decodes_base64() {
+        assert_eq!(decode_base64("aGVsbG8=").unwrap(), b"hello");
+        assert_eq!(decode_base64("aGk=").unwrap(), b"hi");
+        assert_eq!(decode_base64("YWJj").unwrap(), b"abc");
+        assert!(decode_base64("abc").is_none() && decode_base64("a$==").is_none());
     }
 }

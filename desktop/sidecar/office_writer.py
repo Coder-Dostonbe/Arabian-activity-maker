@@ -1,6 +1,6 @@
 """Minimal .docx / .xlsx writers (standard library only).
 
-Used to build the sample files in desktop/samples/ and the sidecar test fixtures,
+Used for the results export (.xlsx), the sample files in desktop/samples/ and the sidecar test fixtures,
 so both exercise the same Office structure the importer reads.
 """
 

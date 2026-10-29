@@ -170,10 +170,15 @@ class Lexicon:
         return cls.from_json(_data_file("lexicon_seed.json").read_text(encoding="utf-8"))
 
     @classmethod
-    def bundled(cls) -> Lexicon:
-        """Every packaged lexicon_*.json, the hand-made seed first; ids must be unique across files."""
-        return cls.from_files(f for f in resources.files("arabmorph.data").iterdir()
-                              if f.name.startswith("lexicon_") and f.name.endswith(".json"))
+    def bundled(cls, extra_files=()) -> Lexicon:
+        """Every packaged lexicon_*.json, the hand-made seed first, then `extra_files` (e.g. a user lexicon);
+        ids must be unique across all of them."""
+        packaged = [f for f in resources.files("arabmorph.data").iterdir()
+                    if f.name.startswith("lexicon_") and f.name.endswith(".json")]
+        lexicon = cls.from_files(packaged)
+        for f in extra_files:
+            lexicon._add_raw(json.loads(f.read_text(encoding="utf-8")))
+        return lexicon
 
     @classmethod
     def from_files(cls, files) -> Lexicon:

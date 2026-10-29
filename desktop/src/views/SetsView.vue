@@ -90,8 +90,18 @@ function removeRow(item: Item) {
   if (selected.value) selected.value.items = selected.value.items.filter((i) => i.id !== item.id);
 }
 
+// "Approve all" skips rows the engine disagrees with: those are approved one by one, after a look.
 function setAll(approved: boolean) {
-  selected.value?.items.forEach((i) => (i.approved = approved));
+  selected.value?.items.forEach((i) => {
+    if (!approved || i.check?.status !== "engine_disagrees") i.approved = approved;
+  });
+}
+
+const checkClass: Record<string, string> = { engine_agrees: "ok", engine_disagrees: "err", not_checkable: "" };
+
+function checkTitle(item: Item) {
+  const c = item.check;
+  return c ? `${m.value.check.title[c.status]}${c.detail ? ` (${c.detail})` : ""}` : "";
 }
 
 function deleteSet() {
@@ -192,7 +202,12 @@ function setOptions(item: Item, text: string) {
                   <td class="center"><input v-model="item.approved" type="checkbox" :aria-label="m.sets.approved" /></td>
                   <td><input v-model="item.prompt" type="text" :class="arClass(item.prompt)" :dir="textDir(item.prompt)" /></td>
                   <td><input v-model="item.translation" type="text" :class="arClass(item.translation)" :dir="textDir(item.translation)" /></td>
-                  <td><input v-model="item.answer" type="text" :class="arClass(item.answer)" :dir="textDir(item.answer)" /></td>
+                  <td>
+                    <input v-model="item.answer" type="text" :class="arClass(item.answer)" :dir="textDir(item.answer)" />
+                    <div v-if="item.check?.status === 'engine_disagrees'" class="engine-says small">
+                      {{ m.check.engineSays }} <span class="ar" lang="ar">{{ item.check.engine.join(" / ") }}</span>
+                    </div>
+                  </td>
                   <td><input v-model="item.note" type="text" :dir="textDir(item.note)" /></td>
                   <td>
                     <input :value="optionsText(item)" type="text" :class="arClass(optionsText(item))" :dir="textDir(optionsText(item))"
@@ -202,6 +217,9 @@ function setOptions(item: Item, text: string) {
                     <span v-if="item.form" class="badge accent" :title="item.base">{{ m.sets.forms[item.form] }}</span>
                     <span class="badge">{{ m.sets.origin[item.origin] }}</span>
                     <span v-if="item.uncertain" class="badge warn">{{ m.sets.uncertain }}</span>
+                    <span v-if="item.check" class="badge" :class="checkClass[item.check.status]" :title="checkTitle(item)">
+                      {{ m.check.badge[item.check.status] }}
+                    </span>
                     <button class="icon" :aria-label="m.common.delete" :title="m.common.delete" @click="removeRow(item)">✕</button>
                   </td>
                 </tr>
@@ -220,6 +238,8 @@ function setOptions(item: Item, text: string) {
 .intro { max-width: 820px; }
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0; }
 .spacer { flex: 1; }
+.engine-says { color: var(--err); margin-top: 2px; }
+.engine-says .ar { font-size: 18px; }
 .format { margin-bottom: 16px; }
 .format summary { cursor: pointer; font-weight: 600; }
 .format ul { margin: 8px 0; padding-inline-start: 20px; }

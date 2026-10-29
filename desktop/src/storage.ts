@@ -4,7 +4,7 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { ref } from "vue";
 
-type Name = "sets" | "settings";
+type Name = "sets" | "settings" | "results" | "lexicon_queue";
 
 const SAVE_DELAY = 500;
 const PREFIX = "arabmorph.";
@@ -13,6 +13,7 @@ const LEGACY_KEY = "arabmorph.claude.key"; // an older version kept the API key 
 
 let settings: Record<string, unknown> = {};
 let sets: unknown[] | null = null;
+const lists: Record<"results" | "lexicon_queue", unknown[]> = { results: [], lexicon_queue: [] };
 const timers: Partial<Record<Name, ReturnType<typeof setTimeout>>> = {};
 
 /** The last save failed (shown as a warning; the next change retries). */
@@ -106,6 +107,14 @@ export async function initStorage(): Promise<void> {
   } catch {
     saveFailed.value = true;
   }
+  for (const name of ["results", "lexicon_queue"] as const) {
+    try {
+      const v = await load(name);
+      lists[name] = Array.isArray(v) ? v : [];
+    } catch {
+      saveFailed.value = true;
+    }
+  }
   await migrateApiKey();
   window.addEventListener("beforeunload", flush);
 }
@@ -127,6 +136,13 @@ export function flush() {
     clearTimeout(timers.settings);
     delete timers.settings;
     void write("settings", settings).catch(() => {});
+  }
+  for (const name of ["results", "lexicon_queue"] as const) {
+    if (timers[name]) {
+      clearTimeout(timers[name]);
+      delete timers[name];
+      void write(name, lists[name]).catch(() => {});
+    }
   }
   if (timers.sets) {
     clearTimeout(timers.sets);
@@ -156,4 +172,14 @@ export function getSets(): unknown[] {
 export function saveSets(value: unknown[]) {
   sets = value;
   schedule("sets", () => sets);
+}
+
+/** Saved runs of the test, or the lexicon proposals awaiting review. */
+export function getList<T>(name: "results" | "lexicon_queue"): T[] {
+  return lists[name] as T[];
+}
+
+export function saveList(name: "results" | "lexicon_queue", value: unknown[]) {
+  lists[name] = value;
+  schedule(name, () => lists[name]);
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { isTauri } from "@tauri-apps/api/core";
-import { ClaudeError, draftItems, MAX_DRAFT_ITEMS, savedKey } from "../claude";
+import { ClaudeError, draftItems, MAX_DRAFT_ITEMS, MODELS, savedKey, useModel } from "../claude";
 import { engine, type BuildResult, type CaseName, type NumberName, type StateName } from "../engine";
 import { useI18n } from "../i18n";
 import { useEngineStore } from "../stores/engine";
@@ -61,7 +61,7 @@ async function runEngine() {
   try {
     const r = await engine.buildItems({ words: list, number: number.value, case: kase.value, state: state.value });
     const n = note();
-    sets.append(props.set.id, r.items.map((i) => ({ prompt: i.prompt, answer: i.answer, note: n, options: i.options, uncertain: i.uncertain })), "engine");
+    sets.append(props.set.id, r.items.map((i) => ({ prompt: i.prompt, answer: i.answer, note: n, options: i.options, uncertain: i.uncertain, rules: i.rules })), "engine");
     skipped.value = r.skipped;
     message.value = m.value.gen.added(r.items.length);
   } catch (e) {
@@ -78,6 +78,7 @@ const hasSavedKey = ref(false);
 const remember = ref(false);
 const topic = ref("");
 const count = ref(10);
+const model = useModel();
 const canAsk = computed(() => (!!apiKey.value.trim() || hasSavedKey.value) && !!topic.value.trim() && isTauri());
 
 onMounted(async () => {
@@ -106,10 +107,17 @@ async function runClaude() {
   skipped.value = [];
   try {
     const n = Math.min(MAX_DRAFT_ITEMS, Math.max(1, Math.round(count.value || 10)));
-    const items = await draftItems(key, remember.value, topic.value.trim(), n, m.value.claudeLanguage);
+    const items = await draftItems(key, remember.value, topic.value.trim(), n, m.value.claudeLanguage, model.value);
     hasSavedKey.value = remember.value && (hasSavedKey.value || !!key);
     if (key && remember.value) apiKey.value = "";
-    sets.append(props.set.id, items, "claude");
+    // The engine re-derives every answer it can; a disagreement is shown and the row is never auto-approved.
+    let checks: (Awaited<ReturnType<typeof engine.verifyItems>>[number] | undefined)[] = [];
+    try {
+      checks = await engine.verifyItems(items.map((i) => ({ prompt: i.prompt, answer: i.answer })));
+    } catch {
+      /* the rows are still added, unchecked */
+    }
+    sets.append(props.set.id, items.map((i, k) => ({ ...i, ...(checks[k] ? { check: checks[k] } : {}) })), "claude");
     message.value = m.value.gen.added(items.length);
   } catch (e) {
     if (e instanceof ClaudeError) {
@@ -181,6 +189,13 @@ async function runClaude() {
       <label class="check"><input v-model="remember" type="checkbox" /> {{ m.gen.remember }}</label>
       <p v-if="remember" class="small muted">{{ m.gen.rememberHint }}</p>
       <div v-if="hasSavedKey"><button type="button" class="small-btn" @click="forgetKey">{{ m.gen.forgetKey }}</button></div>
+      <label class="field">
+        <span class="small muted">{{ m.models.label }}</span>
+        <select v-model="model">
+          <option v-for="mo in MODELS" :key="mo.id" :value="mo.id">{{ m.models.names[mo.id] }}</option>
+        </select>
+        <span class="small muted">{{ m.models.cost[model] }}</span>
+      </label>
       <label class="field">
         <span class="small muted">{{ m.gen.topic }}</span>
         <textarea v-model="topic" rows="3" dir="auto" :placeholder="m.gen.topicPlaceholder" />

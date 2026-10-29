@@ -9,7 +9,6 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "sidecar"))
-sys.path.insert(0, str(ROOT / "scripts"))
 import arabmorph_service as svc  # noqa: E402
 import importers  # noqa: E402
 from importers import FileImportError, import_file  # noqa: E402

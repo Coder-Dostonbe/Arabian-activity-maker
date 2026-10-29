@@ -12,6 +12,8 @@ const nav = computed(() => [
   { to: "/", label: m.value.nav.activity },
   { to: "/test", label: m.value.nav.test },
   { to: "/sets", label: m.value.nav.sets },
+  { to: "/analysis", label: m.value.nav.analysis },
+  { to: "/results", label: m.value.nav.results },
   { to: "/lexicon", label: m.value.nav.lexicon, secondary: true },
   { to: "/rules", label: m.value.nav.rules, secondary: true },
   { to: "/about", label: m.value.nav.about, secondary: true },

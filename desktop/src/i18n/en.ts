@@ -18,6 +18,8 @@ export const en: Messages = {
     lexicon: "Lexicon",
     rules: "Rules",
     about: "About",
+    analysis: "Analysis",
+    results: "Results",
     language: "Language",
   },
 
@@ -257,5 +259,86 @@ export const en: Messages = {
       "Words with several readings (for example مدرسة) are skipped by the assistant.",
       "Engine warnings and rule explanations are in English and Arabic.",
     ],
+  },
+
+  models: {
+    label: "Claude model",
+    names: { "claude-haiku-5-5": "Claude Haiku 5.5", "claude-sonnet-5-5": "Claude Sonnet 5.5", "claude-opus-5-5": "Claude Opus 5.5" } as Record<string, string>,
+    cost: {
+      "claude-haiku-5-5": "Cheapest and fastest. Per million tokens: $0.10 input / $0.50 output. Ten questions cost roughly under a cent.",
+      "claude-sonnet-5-5": "Middle. Per million tokens: $2 / $10. Ten questions cost roughly a few cents.",
+      "claude-opus-5-5": "Most capable and most expensive. Per million tokens: $4 / $20. Ten questions cost roughly 5–15 cents.",
+    } as Record<string, string>,
+  },
+
+  check: {
+    badge: { engine_agrees: "Engine: agrees", engine_disagrees: "Engine: differs", not_checkable: "Not checked" } as Record<string, string>,
+    title: {
+      engine_agrees: "The engine builds the same answer",
+      engine_disagrees: "The engine builds this form differently — check the row before approving it",
+      not_checkable: "The engine could not tell which form is asked for",
+    } as Record<string, string>,
+    engineSays: "Engine:",
+  },
+
+  tutor: { label: "Rule" },
+
+  analysis: {
+    title: "Analysis",
+    intro: "Type a word: the engine shows its singular, dual and plural forms in the three cases and three states. Click a cell to see the rule behind the form, its source and its confidence.",
+    placeholder: "كتاب",
+    run: "Analyse",
+    didYouMean: "Did you mean:",
+    reverse: "The form as typed",
+    noAnalysis: "No singular word produces this form.",
+    singular: "Singular",
+    number: "Number",
+    state: "State",
+    case: "Case",
+    notInLexicon: "not in the lexicon",
+    ambiguous: "There are several readings; without context none can be chosen.",
+    ambiguousShort: "several readings",
+    askTitle: "Ask Claude",
+    askIntro: "This word is not in the lexicon. Claude proposes its gender, final-letter class, diptote status and plural(s). The proposal goes to the review queue on the Lexicon page and is not used until you approve it.",
+    needKey: "First save an API key under Word sets → AI assistant → Claude.",
+    ask: "Ask Claude",
+    queued: (lemma: string) => `The proposal for «${lemma}» was added to the review queue.`,
+    clickCell: "Click a cell for details.",
+    sources: { rule: "rule", lexicon: "lexicon", heuristic: "guess from spelling", asserted: "type you chose" } as Record<string, string>,
+    condition: "Condition",
+    confidence: (n: number) => `confidence ${n}%`,
+  },
+
+  queue: {
+    title: "Review queue",
+    intro: "Lexicon entries proposed by Claude. An approved entry is added to your own lexicon (verified: false, source: user) and the engine uses it right away.",
+    asked: (word: string, model: string) => `for «${word}» · ${model}`,
+    approve: "Approve",
+    reject: "Reject",
+    added: (lemma: string, homographs: number) =>
+      `«${lemma}» was added to your lexicon.` + (homographs ? ` The lexicon has ${homographs} more word(s) spelled the same way.` : ""),
+    mine: "Your entry",
+  },
+
+  results: {
+    title: "Results",
+    intro: "Every finished test is kept here: date, set, class or group, score and each question's outcome. For questions the engine built, it also shows which rules cause the most mistakes.",
+    group: "Class or group",
+    groupPlaceholder: "For example: 7B",
+    saved: "Result saved.",
+    allGroups: "All groups",
+    export: "Export to Excel (.xlsx)",
+    exported: (path: string) => `Saved to ${path}`,
+    empty: "No test results saved yet.",
+    confirmDelete: "Really delete?",
+    byRule: "Mistakes by rule",
+    byRuleHint: "Only engine-built questions count; each question is counted under the main rule that decided its form.",
+    noRules: "These tests have no engine-built questions.",
+    cols: {
+      date: "Date", set: "Set", group: "Group", correct: "Correct", wrong: "Wrong", unanswered: "Unanswered",
+      total: "Total", score: "Score", question: "Question", answer: "Answer", outcome: "Outcome", rule: "Rule",
+      ruleName: "Rule name", asked: "Asked", errorRate: "Error rate",
+    },
+    sheets: { runs: "Tests", questions: "Questions", rules: "Rules" },
   },
 };

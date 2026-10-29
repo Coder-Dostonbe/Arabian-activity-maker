@@ -18,6 +18,8 @@ export const ar: Messages = {
     lexicon: "المعجم",
     rules: "القواعد",
     about: "عن البرنامج",
+    analysis: "التحليل",
+    results: "النتائج",
     language: "اللغة",
   },
 
@@ -253,5 +255,86 @@ export const ar: Messages = {
       "يتخطى المساعد الكلمات التي لها أكثر من قراءة (مثل مدرسة).",
       "تحذيرات المحرّك وشروح القواعد بالإنجليزية والعربية.",
     ],
+  },
+
+  models: {
+    label: "نموذج Claude",
+    names: { "claude-haiku-5-5": "Claude Haiku 5.5", "claude-sonnet-5-5": "Claude Sonnet 5.5", "claude-opus-5-5": "Claude Opus 5.5" } as Record<string, string>,
+    cost: {
+      "claude-haiku-5-5": "الأرخص والأسرع. لكل مليون رمز: ‎$0.10 إدخال / ‎$0.50 إخراج. عشرة أسئلة بأقل من سنت تقريبًا.",
+      "claude-sonnet-5-5": "متوسط. لكل مليون رمز: ‎$2 / ‎$10. عشرة أسئلة ببضعة سنتات تقريبًا.",
+      "claude-opus-5-5": "الأقوى والأغلى. لكل مليون رمز: ‎$4 / ‎$20. عشرة أسئلة بنحو 5–15 سنتًا.",
+    } as Record<string, string>,
+  },
+
+  check: {
+    badge: { engine_agrees: "المحرك: صحيح", engine_disagrees: "المحرك: مختلف", not_checkable: "لم يُتحقق" } as Record<string, string>,
+    title: {
+      engine_agrees: "يولّد المحرك الجواب نفسه",
+      engine_disagrees: "يولّد المحرك هذه الصيغة بشكل آخر — راجع السطر قبل اعتماده",
+      not_checkable: "لم يستطع المحرك تحديد الصيغة المطلوبة",
+    } as Record<string, string>,
+    engineSays: "المحرك:",
+  },
+
+  tutor: { label: "القاعدة" },
+
+  analysis: {
+    title: "التحليل",
+    intro: "اكتب كلمة: يعرض المحرك صيغ المفرد والمثنى والجمع في الحالات الإعرابية الثلاث والأحوال الثلاث. انقر خانة لترى القاعدة التي بُنيت عليها الصيغة ومصدرها ودرجة الثقة.",
+    placeholder: "كتاب",
+    run: "حلّل",
+    didYouMean: "لعلك تقصد:",
+    reverse: "الصيغة المكتوبة",
+    noAnalysis: "لا يمكن توليد هذه الصيغة من أي مفرد.",
+    singular: "المفرد",
+    number: "العدد",
+    state: "الحال",
+    case: "الإعراب",
+    notInLexicon: "ليست في المعجم",
+    ambiguous: "للكلمة أكثر من قراءة، ولا يمكن الترجيح بلا سياق.",
+    ambiguousShort: "أكثر من قراءة",
+    askTitle: "اسأل Claude",
+    askIntro: "هذه الكلمة ليست في المعجم. يقترح Claude جنسها ونوع آخرها وهل هي ممنوعة من الصرف وجمعها. يدخل الاقتراح قائمة المراجعة في صفحة المعجم ولا يُستعمل حتى تعتمده.",
+    needKey: "احفظ مفتاح API أولًا في «المجموعات ← المساعد الذكي ← Claude».",
+    ask: "اسأل Claude",
+    queued: (lemma: string) => `أُضيف اقتراح «${lemma}» إلى قائمة المراجعة.`,
+    clickCell: "انقر خانة لمزيد من التفاصيل.",
+    sources: { rule: "قاعدة", lexicon: "المعجم", heuristic: "تقدير من الإملاء", asserted: "نوع حددته أنت" } as Record<string, string>,
+    condition: "الشرط",
+    confidence: (n: number) => `الثقة ${n}%`,
+  },
+
+  queue: {
+    title: "قائمة المراجعة",
+    intro: "مداخل معجمية اقترحها Claude. يُضاف المدخل المعتمد إلى معجمك (verified: false، source: user) ويستعمله المحرك فورًا.",
+    asked: (word: string, model: string) => `لكلمة «${word}» · ${model}`,
+    approve: "اعتماد",
+    reject: "رفض",
+    added: (lemma: string, homographs: number) =>
+      `أُضيفت «${lemma}» إلى معجمك.` + (homographs ? ` في المعجم ${homographs} كلمة أخرى بالرسم نفسه.` : ""),
+    mine: "مدخلك",
+  },
+
+  results: {
+    title: "النتائج",
+    intro: "يُحفظ هنا كل اختبار منتهٍ: التاريخ والمجموعة والصف أو الفوج والدرجة ونتيجة كل سؤال. ويظهر أيضًا أي القواعد يكثر فيها الخطأ في الأسئلة التي ولّدها المحرك.",
+    group: "الصف أو الفوج",
+    groupPlaceholder: "مثلًا: السابع ب",
+    saved: "حُفظت النتيجة.",
+    allGroups: "كل الأفواج",
+    export: "تصدير إلى Excel (.xlsx)",
+    exported: (path: string) => `حُفظ في: ${path}`,
+    empty: "لا توجد نتائج اختبارات محفوظة بعد.",
+    confirmDelete: "هل تريد الحذف فعلًا؟",
+    byRule: "الأخطاء حسب القاعدة",
+    byRuleHint: "تُحسب أسئلة المحرك فقط، وكل سؤال يُنسب إلى القاعدة الأساسية التي حدّدت الصيغة.",
+    noRules: "لا توجد في هذه الاختبارات أسئلة ولّدها المحرك.",
+    cols: {
+      date: "التاريخ", set: "المجموعة", group: "الفوج", correct: "صحيح", wrong: "خطأ", unanswered: "بلا جواب",
+      total: "المجموع", score: "النتيجة", question: "السؤال", answer: "الجواب", outcome: "النتيجة", rule: "القاعدة",
+      ruleName: "اسم القاعدة", asked: "سُئل", errorRate: "نسبة الخطأ",
+    },
+    sheets: { runs: "الاختبارات", questions: "الأسئلة", rules: "القواعد" },
   },
 };

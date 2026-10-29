@@ -62,6 +62,7 @@ export interface BuiltItem {
   prompt: string;
   answer: string;
   options: string[];
+  rules: string[];
   uncertain: boolean;
   warnings: string[];
 }
@@ -76,6 +77,80 @@ export interface BuildParams {
   number: NumberName;
   case: CaseName;
   state: StateName;
+}
+
+export interface Form {
+  text: string;
+  vocalized: string;
+  number: NumberName;
+  case: CaseName;
+  definite: boolean;
+  construct: boolean;
+  rules: string[];
+  source: "rule" | "lexicon" | "heuristic" | "asserted";
+  confidence: number;
+  condition: string | null;
+  warnings: string[];
+  kind: PluralKind | null;
+  diptote: boolean | null;
+}
+
+export interface GenerationResult {
+  input: string;
+  status: "ok" | "ambiguous" | "error";
+  forms: Form[];
+  warnings: string[];
+  errors: string[];
+  assumptions: string[];
+  suggestions: string[];
+}
+
+/** state → case → result, as returned by the `paradigm` op. */
+export type Paradigm = Record<StateName, Record<CaseName, GenerationResult>>;
+
+export interface Analysis {
+  singular: string;
+  number: NumberName;
+  state: StateName;
+  cases: CaseName[];
+  kind: PluralKind | null;
+  vocalized: string;
+  entry_id: string | null;
+  in_lexicon: boolean;
+  rules: string[];
+  source: string;
+  confidence: number;
+  condition: string | null;
+}
+
+export interface AnalysisResult {
+  input: string;
+  status: "ok" | "ambiguous" | "error";
+  analyses: Analysis[];
+  warnings: string[];
+  errors: string[];
+  suggestions: string[];
+}
+
+export type CheckStatus = "engine_agrees" | "engine_disagrees" | "not_checkable";
+
+export interface Check {
+  status: CheckStatus;
+  engine: string[];
+  detail: string;
+}
+
+/** A lexicon entry as proposed (by Claude) or stored in the teacher's own lexicon. */
+export interface EntryDraft {
+  lemma: string;
+  pos: string;
+  gender: string;
+  final_class: string;
+  alif_origin?: string;
+  hamza_type?: string;
+  diptote?: boolean;
+  gloss_en?: string;
+  plurals?: { kind: PluralKind; form?: string; diptote?: boolean }[];
 }
 
 interface Reply<T> {
@@ -107,4 +182,12 @@ export const engine = {
   lexicon: () => call<LexiconEntry[]>("lexicon"),
   importFile: (name: string, data: string) => call<ImportResult>("import_file", { name, data }),
   buildItems: (p: BuildParams) => call<BuildResult>("build_items", p),
+  paradigm: (word: string, number: NumberName) => call<Paradigm>("paradigm", { word, number }),
+  analyze: (word: string) => call<AnalysisResult>("analyze", { word }),
+  verifyItems: (items: { prompt: string; answer: string }[]) => call<Check[]>("verify_items", { items }),
+  userLexicon: () => call<{ entries: (EntryDraft & { id: string })[]; configured: boolean }>("user_lexicon"),
+  checkEntry: (entry: EntryDraft) => call<{ entry: EntryDraft; problems: string[] }>("user_lexicon_check", { entry }),
+  addEntry: (entry: EntryDraft) => call<{ entry: EntryDraft & { id: string }; homographs: number }>("user_lexicon_add", { entry }),
+  removeEntry: (id: string) => call<{ removed: boolean }>("user_lexicon_remove", { id }),
+  exportXlsx: (sheets: Record<string, string[][]>) => call<{ data: string }>("export_xlsx", { sheets }),
 };

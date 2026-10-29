@@ -3,8 +3,24 @@
 // The request is made by the Rust shell (src-tauri/src/claude.rs), which also keeps the key in
 // Windows Credential Manager: the key is never stored by, or sent back to, the webview.
 import { invoke } from "@tauri-apps/api/core";
+import { persisted } from "./util";
 
 export const MAX_DRAFT_ITEMS = 40;
+
+/** Cheapest first: it is the default. Prices per million tokens (input / output), Claude API, 2026-10. */
+export const MODELS = [
+  { id: "claude-haiku-5-5", input: 0.1, output: 0.5 },
+  { id: "claude-sonnet-5-5", input: 2, output: 10 },
+  { id: "claude-opus-5-5", input: 4, output: 20 },
+] as const;
+export type ModelId = (typeof MODELS)[number]["id"];
+
+/** The teacher's model choice, remembered; an unknown saved value falls back to the cheapest. */
+export function useModel() {
+  const model = persisted<ModelId>("arabmorph.claude.model", MODELS[0].id);
+  if (!MODELS.some((m) => m.id === model.value)) model.value = MODELS[0].id;
+  return model;
+}
 
 export interface DraftItem {
   prompt: string;
@@ -32,15 +48,37 @@ export const savedKey = {
 };
 
 /** `key` null uses the saved key; `remember` saves a typed key, unchecking it removes the saved one. */
-export async function draftItems(key: string | null, remember: boolean, topic: string, count: number, language: string): Promise<DraftItem[]> {
-  let raw: unknown;
+async function claude<T>(command: string, args: Record<string, unknown>): Promise<T> {
   try {
-    raw = await invoke<unknown>("claude_draft", { key, remember, topic, count, language });
+    return await invoke<T>(command, args);
   } catch (e) {
     const f = e as { kind?: unknown; message?: unknown } | null;
     if (f && typeof f.kind === "string") throw new ClaudeError(f.kind as ClaudeErrorKind, typeof f.message === "string" ? f.message : "");
     throw new ClaudeError("other", String(e));
   }
+}
+
+/** Claude's description of a word for the lexicon; it goes to the review queue, never straight into the lexicon. */
+export function proposeEntry(key: string | null, remember: boolean, word: string, modelId: ModelId) {
+  return claude<EntryProposal>("claude_lexicon", { key, remember, word, modelId });
+}
+
+export interface EntryProposal {
+  lemma: string;
+  pos: string;
+  gender: string;
+  final_class: string;
+  alif_origin: string;
+  hamza_type: string;
+  diptote: boolean;
+  gloss_en: string;
+  plurals: { kind: "sound_masculine" | "sound_feminine" | "broken"; form: string; diptote: boolean }[];
+  note: string;
+}
+
+export async function draftItems(key: string | null, remember: boolean, topic: string, count: number, language: string,
+                                 modelId: ModelId): Promise<DraftItem[]> {
+  const raw = await claude<unknown>("claude_draft", { key, remember, topic, count, language, modelId });
   if (!Array.isArray(raw)) throw new ClaudeError("invalid");
 
   const items: DraftItem[] = [];

@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { computed, ref, watch } from "vue";
+import type { Check, CheckStatus } from "../engine";
 import { allSettings, getSets, saveFailed, saveSets, setSetting } from "../storage";
 import { newId } from "../util";
 
@@ -18,6 +19,8 @@ export interface Item {
   uncertain?: boolean;
   form?: Form; // a plural / dual split off the word `base` it was written beside
   base?: string;
+  rules?: string[]; // engine rules behind the answer (engine-built rows), for the tutor explanation
+  check?: Check; // Claude-drafted rows: what the engine says about the answer
 }
 
 export interface WordSet {
@@ -31,6 +34,7 @@ export type NewItem = Omit<Item, "id" | "approved" | "origin" | "translation"> &
 
 const BACKUP_FORMAT = "arabmorph-backup";
 const ORIGINS: Origin[] = ["file", "engine", "claude", "manual"];
+const CHECKS: CheckStatus[] = ["engine_agrees", "engine_disagrees", "not_checkable"];
 
 const str = (v: unknown, max = 2000) => (typeof v === "string" ? v.slice(0, max) : "");
 
@@ -49,6 +53,10 @@ export function normalizeSet(raw: unknown): WordSet | null {
     origin: ORIGINS.includes(i.origin as Origin) ? i.origin : "manual",
     ...(i.uncertain ? { uncertain: true } : {}),
     ...(i.form === "plural" || i.form === "dual" ? { form: i.form, base: str(i.base) } : {}),
+    ...(Array.isArray(i.rules) ? { rules: i.rules.map((r) => str(r, 100)).filter(Boolean) } : {}),
+    ...(i.check && CHECKS.includes(i.check.status)
+      ? { check: { status: i.check.status, engine: Array.isArray(i.check.engine) ? i.check.engine.map((e) => str(e)) : [], detail: str(i.check.detail) } }
+      : {}),
   }));
   return { id: str(s.id, 100) || newId(), name: str(s.name, 200) || "—", items, updated: Number(s.updated) || Date.now() };
 }

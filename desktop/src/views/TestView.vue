@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import RuleHint from "../components/RuleHint.vue";
 import SetPicker from "../components/SetPicker.vue";
 import { useCountdown } from "../composables/countdown";
 import { useI18n } from "../i18n";
 import { askable, questions as buildQuestions, UZ_QUESTIONS, type Question } from "../exercise";
+import { useResultsStore } from "../stores/results";
 import { useSetsStore } from "../stores/sets";
 import { arClass, textDir, beep, formatClock, persisted, shuffle } from "../util";
 
@@ -21,6 +23,9 @@ const extraSeconds = persisted("arabmorph.test.seconds", 0);
 const mix = persisted("arabmorph.test.shuffle", true);
 const withOptions = persisted("arabmorph.test.options", true);
 const sound = persisted("arabmorph.test.sound", true);
+const group = persisted("arabmorph.test.group", "");
+const results = useResultsStore();
+const saved = ref(false);
 
 const phase = ref<"setup" | "run" | "over">("setup");
 const endReason = ref<"time" | "done">("time");
@@ -61,6 +66,7 @@ function begin() {
   revealed.value = false;
   chosen.value = null;
   paused.value = false;
+  saved.value = false;
   phase.value = "run";
   timer.start(ms, () => finish("time"));
 }
@@ -101,7 +107,32 @@ function finish(reason: "time" | "done") {
   timer.stop();
   endReason.value = reason;
   phase.value = "over";
+  saveRun();
   if (reason === "time" && sound.value) beep();
+}
+
+/** Every finished test goes into the results history (Natijalar). */
+function saveRun() {
+  if (saved.value || !questions.value.length) return;
+  const set = sets.get(setId.value);
+  results.add({
+    date: Date.now(),
+    setId: set?.id ?? "",
+    setName: set?.name ?? "",
+    group: group.value.trim().slice(0, 80),
+    correct: counts.value.correct,
+    wrong: counts.value.wrong,
+    unanswered: counts.value.unanswered,
+    total: questions.value.length,
+    questions: questions.value.map((q, i) => ({
+      shown: q.shown,
+      answer: q.answer,
+      ask: q.ask,
+      outcome: outcomes.value[i] ?? "unanswered",
+      rules: q.item.rules ?? [],
+    })),
+  });
+  saved.value = true;
 }
 
 function togglePause() {
@@ -110,6 +141,13 @@ function togglePause() {
   if (paused.value) timer.pause();
   else timer.resume();
 }
+
+// The rule behind the answer, after a wrong choice or "show answer", for rows the engine built.
+const explain = computed(() => {
+  const rules = current.value?.item.rules;
+  if (!rules?.length || !revealed.value) return null;
+  return !current.value.options || outcomes.value[index.value] === "wrong" ? rules : null;
+});
 
 function optionClass(option: string) {
   if (!revealed.value) return "";
@@ -158,6 +196,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
             <input v-model.number="extraSeconds" type="number" min="0" max="59" class="num" /> {{ m.common.seconds }}
           </span>
         </label>
+        <label class="field">
+          <span class="small muted">{{ m.results.group }}</span>
+          <input v-model="group" type="text" maxlength="80" :placeholder="m.results.groupPlaceholder" />
+        </label>
         <label class="check"><input v-model="mix" type="checkbox" /> {{ m.common.shuffle }}</label>
         <label class="check"><input v-model="withOptions" type="checkbox" /> {{ m.test.showOptions }}</label>
         <p v-if="withOptions" class="small muted hint">{{ m.test.optionsHint }}</p>
@@ -189,6 +231,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
         </div>
         <div v-if="paused" class="paused-badge">{{ m.common.paused }}</div>
       </div>
+
+      <RuleHint v-if="explain" :ids="explain" />
 
       <div v-if="current.options" class="options">
         <button v-for="(o, i) in current.options" :key="o" class="option" :class="optionClass(o)"
@@ -247,6 +291,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           </tbody>
         </table>
       </details>
+      <p v-if="saved" class="small muted center">{{ m.results.saved }} <RouterLink to="/results">{{ m.nav.results }}</RouterLink></p>
       <div class="actions">
         <button class="primary" @click="begin">{{ m.common.restart }}</button>
         <button @click="phase = 'setup'">{{ m.common.settings }}</button>

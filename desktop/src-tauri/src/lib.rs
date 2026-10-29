@@ -55,7 +55,12 @@ fn service_path(app: &AppHandle) -> Result<PathBuf, String> {
 fn spawn(app: &AppHandle) -> Result<Service, String> {
     let log = app.state::<Arc<Log>>().inner().clone();
     let path = service_path(app)?;
-    start(Command::new(&path), log).map_err(|e| format!("{e} ({})", path.display()))
+    let mut cmd = Command::new(&path);
+    // The teacher's own lexicon entries live next to the other data files.
+    if let Ok(data) = app.path().app_data_dir() {
+        cmd.env("ARABMORPH_USER_LEXICON", data.join("data").join("lexicon_user.json"));
+    }
+    start(cmd, log).map_err(|e| format!("{e} ({})", path.display()))
 }
 
 fn start(mut cmd: Command, log: Arc<Log>) -> Result<Service, String> {
@@ -205,6 +210,8 @@ pub fn run() {
             claude::api_key_forget,
             claude::api_key_save,
             claude::claude_draft,
+            claude::claude_lexicon,
+            store::export_file,
         ])
         .build(tauri::generate_context!())
         .expect("error while building ArabMorph AI");

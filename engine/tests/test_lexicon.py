@@ -178,3 +178,22 @@ def test_bundled_lexicon_loads_within_budget():
     start = time.perf_counter()
     Lexicon.bundled()
     assert time.perf_counter() - start < LOAD_BUDGET
+
+
+def test_extra_files_load_after_the_bundled_ones(tmp_path):
+    _sample_lexicon(tmp_path)
+    lex = Lexicon.bundled([tmp_path / "lexicon_sample.json"])
+    assert lex.lookup("كتاب") and lex.lookup("نجم")
+    assert [e.id for e in lex][-1].startswith("sample-")
+
+
+def test_default_lexicon_can_be_replaced_and_restored(tmp_path):
+    from arabmorph.pipeline import set_default_lexicon
+    lex = _sample_lexicon(tmp_path)
+    try:
+        set_default_lexicon(lex)
+        assert generate("نجم", Number.PLURAL).forms[0].text == "نجوم"
+        assert default_lexicon() is lex
+    finally:
+        set_default_lexicon(None)
+    assert not default_lexicon().lookup("نجم")

@@ -32,9 +32,23 @@ CONSTRUCT_ONLY = {
 }
 
 
+_override: Lexicon | None = None
+
+
 @lru_cache(maxsize=1)
-def default_lexicon() -> Lexicon:
+def _bundled() -> Lexicon:
     return Lexicon.bundled()
+
+
+def default_lexicon() -> Lexicon:
+    """The lexicon used when a call passes none: the bundled files, or the one set by `set_default_lexicon`."""
+    return _override if _override is not None else _bundled()
+
+
+def set_default_lexicon(lexicon: Lexicon | None) -> None:
+    """Use `lexicon` for every call without an explicit one (e.g. bundled + a user file); None restores the bundled one."""
+    global _override
+    _override = lexicon
 
 
 @dataclass

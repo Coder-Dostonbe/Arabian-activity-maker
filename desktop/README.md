@@ -8,11 +8,14 @@ and English; the language is switched in the UI and remembered on the computer.
 
 | Section | What it does |
 | ------- | ------------ |
-| **Activity** (Mashg'ulot) | Choose a direction: **Arabic → Uzbek** (the Arabic word is shown, its translation is the answer), **Uzbek → Arabic**, or **Word → answer** (the row's own answer, for grammar sets). Approved words appear one at a time, each for a set number of seconds, then the next word appears automatically. Correct / wrong buttons (keys 1 / 2) move on early; an optional pause shows the answer. A summary lists missed words and can repeat them. |
-| **Test** | Questions are always worded in Uzbek: "Bu so'z o'zbekchada nima degani?" for a word with a translation, "Bu so'zning ko'pligi / ikkiligi qanday?" for a plural / dual row, "To'g'ri javobni toping" for a row with an answer. "Start the test" begins one overall timer. Questions are shown to the whole class with A–D options (the row's wrong options, or other answers from the set) or as spoken questions with show-answer and correct / wrong. When the time runs out the screen shows "Time is up!" and the results. |
-| **Word sets** (To'plamlar) | Import `.docx`, `.xlsx` (one set per sheet), `.txt` and `.csv`. Arabic and Uzbek text is sorted into the Word and Translation columns even when mixed or swapped, and a plural / dual written beside a word becomes a row of its own (see below). Edit rows inline and approve them; only approved rows are used. Rows from a file start approved, generated rows start unapproved. |
-| **AI assistant** | *Engine (offline):* from a word list, builds the chosen dual / plural / singular form in a chosen case and state, with real forms of the same word as distractors. Ambiguous words are skipped with a reason. *Claude (online, optional):* drafts items on a topic with the teacher's Anthropic API key (`claude-opus-5-5`, structured output, server-side refusal fallback enabled). |
-| Lexicon, Rules, About | Unchanged reference pages, now translated. |
+| **Activity** (Mashg'ulot) | Choose a direction: **Arabic → Uzbek** (the Arabic word is shown, its translation is the answer), **Uzbek → Arabic**, or **Word → answer** (the row's own answer, for grammar sets). Approved words appear one at a time, each for a set number of seconds, then the next word appears automatically. Correct / wrong buttons (keys 1 / 2) move on early; an optional pause shows the answer. A summary lists missed words and can repeat them. After a wrong answer or "show answer" on a row the engine built, the rule behind the correct form (name, explanation, example) is shown. |
+| **Test** | Questions are always worded in Uzbek: "Bu so'z o'zbekchada nima degani?" for a word with a translation, "Bu so'zning ko'pligi / ikkiligi qanday?" for a plural / dual row, "To'g'ri javobni toping" for a row with an answer. "Start the test" begins one overall timer. Questions are shown to the whole class with A–D options (the row's wrong options, or other answers from the set) or as spoken questions with show-answer and correct / wrong. When the time runs out the screen shows "Time is up!" and the results. Engine-built rows show their rule after a wrong answer or "show answer". Each finished test is saved with an optional class / group name. |
+| **Word sets** (To'plamlar) | Import `.docx`, `.xlsx` (one set per sheet), `.txt` and `.csv`. Arabic and Uzbek text is sorted into the Word and Translation columns even when mixed or swapped, and a plural / dual written beside a word becomes a row of its own (see below). Edit rows inline and approve them; only approved rows are used. Rows from a file start approved, generated rows start unapproved. Claude's rows carry the engine's verdict as a badge (agrees / differs, with the engine's form / not checkable); "Approve all" skips rows the engine disagrees with. |
+| **AI assistant** | *Engine (offline):* from a word list, builds the chosen dual / plural / singular form in a chosen case and state. Distractors are another case or state of the same word plus rule errors — the sound plural for a broken one (`كتابات`), the suffix added without the required change (`صحراءان`, `مستشفاان`), a case vowel no case uses — and never a correct form. Ambiguous words are skipped with a reason. *Claude (online, optional):* drafts items on a topic with the teacher's Anthropic API key and the chosen model — Claude Haiku 5.5 (default, cheapest), Sonnet 5.5 or Opus 5.5, with a cost hint; structured output; server-side refusal fallback on Sonnet and Opus. Every drafted item is re-checked by the engine (see Word sets). |
+| **Analysis** (Tahlil) | Type a word: its singular, dual and plural forms in 3 cases × 3 states, each with source, confidence, condition, warnings and the rules (Arabic / English explanation). The word as typed is also analysed backwards (which singular, number, case, state), with "did you mean" suggestions. For a word the lexicon does not know, **Ask Claude** proposes a lexicon entry. |
+| **Results** (Natijalar) | History of finished tests (date, set, group, score, each question's outcome), filter by group, mistakes per engine rule, export to `.xlsx`. |
+| **Lexicon** | The bundled entries plus the teacher's own. Claude's proposals wait in a **review queue**, are checked against the lexicon schema, and on approval go to `lexicon_user.json` (`verified: false`, `source: "user"`), which the engine loads with the seed. |
+| Rules, About | Reference pages; About opens the log folder. |
 
 The top navigation bar switches between **day**, **night** and **auto** (follows Windows) appearance.
 The app version and the offline engine version (with rule / word counts) are shown in the footer. All text uses one bundled typeface — Noto Sans with its Arabic sibling — so it looks the same and works offline on every computer.
@@ -56,7 +59,7 @@ Sample files are in [`samples/`](samples/) (`lugat.txt` shows a mixed word list)
 desktop/
 ├── src/                    # Vue UI
 │   ├── i18n/               # uz (reference shape), ar, ru, en
-│   ├── views/              # Activity, Test, Sets, Lexicon, Rules, About
+│   ├── views/              # Activity, Test, Sets, Analysis, Results, Lexicon, Rules, About
 │   ├── components/         # SetPicker, AssistantPanel
 │   ├── composables/        # drift-free pausable countdown
 │   ├── stores/             # engine status, word sets
@@ -65,10 +68,13 @@ desktop/
 ├── sidecar/                # Python stdio service wrapping the engine
 │   ├── importers.py        # .txt / .csv / .docx / .xlsx reader (standard library only)
 │   ├── vocab.py            # Arabic / Uzbek sorting, plural and dual rows
-│   ├── activity.py         # engine-built items with distractors
+│   ├── activity.py         # engine-built items with case/state and rule-error distractors
+│   ├── verify.py           # re-checks Claude's items with the engine
+│   ├── user_lexicon.py     # the teacher's own lexicon entries (lexicon_user.json)
+│   ├── office_writer.py    # minimal .xlsx / .docx writer (results export, samples, tests)
 │   └── tests/
 ├── samples/                # namuna.txt / .xlsx / .docx
-├── scripts/                # build-sidecar.ps1, make_samples.py, office_writer.py
+├── scripts/                # build-sidecar.ps1, make_samples.py
 └── src-tauri/              # Rust shell: service + timeouts, log, data files, API key, Claude request
 ```
 
@@ -88,7 +94,7 @@ including the full traceback of any internal error, whose reply to the UI stays
 generic — goes to `arabmorph-service.log` (rotated at 1 MB, three old files kept)
 in `%LOCALAPPDATA%\ai.arabmorph.desktop\logs`; **About → Open log folder** opens it.
 
-**Saved data.** Word sets and settings are JSON files in
+**Saved data.** Word sets, settings, test results (`results.json`) and the lexicon review queue (`lexicon_queue.json`) are JSON files in
 `%APPDATA%\ai.arabmorph.desktop\data` (`sets.json`, `settings.json`). Each save is
 debounced (500 ms), written to a temporary file and renamed over the old one, and
 the previous version is kept in `data\backups` (the last 5). If a file cannot be

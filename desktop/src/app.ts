@@ -8,6 +8,8 @@ import SetsView from "./views/SetsView.vue";
 import LexiconView from "./views/LexiconView.vue";
 import RulesView from "./views/RulesView.vue";
 import AboutView from "./views/AboutView.vue";
+import AnalysisView from "./views/AnalysisView.vue";
+import ResultsView from "./views/ResultsView.vue";
 import "./i18n";
 import "./theme";
 import "@fontsource-variable/noto-sans";
@@ -20,6 +22,8 @@ const router = createRouter({
     { path: "/", component: ActivityView },
     { path: "/test", component: TestView },
     { path: "/sets", component: SetsView },
+    { path: "/analysis", component: AnalysisView },
+    { path: "/results", component: ResultsView },
     { path: "/lexicon", component: LexiconView },
     { path: "/rules", component: RulesView },
     { path: "/about", component: AboutView },

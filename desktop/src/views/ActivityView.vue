@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import RuleHint from "../components/RuleHint.vue";
 import SetPicker from "../components/SetPicker.vue";
 import { useCountdown } from "../composables/countdown";
 import { useI18n } from "../i18n";
@@ -11,6 +12,7 @@ type Outcome = "correct" | "wrong" | "timeout";
 type Phase = "setup" | "show" | "reveal" | "done";
 
 const REVEAL_MS = 2000;
+const EXPLAIN_MS = 6000; // a wrong answer on an engine-built row also shows the rule, which needs longer
 
 const m = useI18n();
 const sets = useSetsStore();
@@ -43,6 +45,14 @@ const counts = computed(() => ({
   timeout: results.value.filter((r) => r.outcome === "timeout").length,
 }));
 const misses = computed(() => results.value.filter((r) => r.outcome !== "correct"));
+// The rule behind the answer, after a wrong answer or "show answer", for rows the engine built.
+const explain = computed(() => {
+  const rules = current.value?.item.rules;
+  if (!rules?.length) return null;
+  const last = results.value[results.value.length - 1];
+  const wrong = phase.value === "reveal" && last?.card === current.value && last.outcome !== "correct";
+  return peek.value || wrong ? rules : null;
+});
 
 function begin(list: Card[]) {
   if (!list.length) return;
@@ -70,7 +80,7 @@ function mark(outcome: Outcome) {
   results.value.push({ card: current.value, outcome });
   if (reveal.value && current.value.back) {
     phase.value = "reveal";
-    timer.start(REVEAL_MS, advance);
+    timer.start(outcome !== "correct" && current.value.item.rules?.length ? EXPLAIN_MS : REVEAL_MS, advance);
   } else {
     advance();
   }
@@ -162,6 +172,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
         <div v-if="(phase === 'reveal' || peek) && current.back" class="answer" :class="arClass(current.back)" :dir="textDir(current.back)">{{ current.back }}</div>
         <div v-if="paused" class="paused-badge">{{ m.common.paused }}</div>
       </div>
+      <RuleHint v-if="explain" :ids="explain" />
 
       <div class="controls">
         <button class="ok big" :disabled="phase !== 'show' || paused" @click="mark('correct')">✓ {{ m.common.correct }}</button>
