@@ -94,6 +94,13 @@ including the full traceback of any internal error, whose reply to the UI stays
 generic — goes to `arabmorph-service.log` (rotated at 1 MB, three old files kept)
 in `%LOCALAPPDATA%\ai.arabmorph.desktop\logs`; **About → Open log folder** opens it.
 
+Service operations (`sidecar/arabmorph_service.py`, `OPS`): `version`,
+`generate`, `paradigm`, `analyze`, `rules`, `lexicon`, `import_file`,
+`build_items`, `verify_items` (re-check Claude's items), `user_lexicon`,
+`user_lexicon_check`, `user_lexicon_add`, `user_lexicon_remove` (the teacher's
+own entries in `%APPDATA%\ai.arabmorph.desktop\data\lexicon_user.json`) and
+`export_xlsx` (test results).
+
 **Saved data.** Word sets, settings, test results (`results.json`) and the lexicon review queue (`lexicon_queue.json`) are JSON files in
 `%APPDATA%\ai.arabmorph.desktop\data` (`sets.json`, `settings.json`). Each save is
 debounced (500 ms), written to a temporary file and renamed over the old one, and
@@ -127,7 +134,7 @@ The installer includes the service, so end users don't need Python.
 cd desktop
 npm install
 npm run sidecar          # freeze the engine service (PyInstaller --onedir) and smoke-test it
-npx tauri build          # → src-tauri/target/release/bundle/nsis/ArabMorph AI_0.4.0_x64-setup.exe
+npx tauri build          # → src-tauri/target/release/bundle/nsis/ArabMorph AI_0.5.0_x64-setup.exe
 ```
 
 `npx tauri dev` runs the app with hot reload. Run `npm run sidecar` first, and
@@ -140,6 +147,26 @@ again whenever the engine or the sidecar changes.
 cargo test --manifest-path src-tauri/Cargo.toml    # timeouts, log rotation, atomic saves and backups
 npm run build                                      # vue-tsc type check (all four languages) + production build
 ```
+
+The same checks run in CI (`.github/workflows/ci.yml`) on Windows, with
+`cargo check` both without and with the `updater` feature.
+
+## Updates (prepared, not active)
+
+`tauri-plugin-updater` sits behind the Cargo feature `updater`, which is off,
+so normal builds contain no updater. `src-tauri/tauri.updater.conf.json` holds
+its settings: the GitHub Releases `latest.json` endpoint, passive install, and
+updater artifacts. Its `pubkey` is a placeholder. To turn it on:
+
+1. `npx tauri signer generate -w <path outside the repo>`, then put the
+   **public** key into `pubkey`. The private key and its password are never
+   committed.
+2. Build with the key in the environment (`TAURI_SIGNING_PRIVATE_KEY`,
+   `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`):
+   `npx tauri build --features updater --config src-tauri/tauri.updater.conf.json`.
+3. Upload the installer, its `.sig` and a `latest.json` to the GitHub release.
+4. Add the update check to the UI (`@tauri-apps/plugin-updater` and the
+   `updater:default` capability).
 
 ## Installer notes
 

@@ -255,7 +255,7 @@ export const en: Messages = {
     limitsTitle: "Limitations",
     limits: [
       "Rules and lexicon entries have not been reviewed by an Arabic specialist yet; check generated questions before a lesson.",
-      "The lexicon has 41 words; broken plurals are not built for words outside it.",
+      "The bundled lexicon has 46 words (plus the ones you add); broken plurals are not built for words outside it.",
       "Words with several readings (for example مدرسة) are skipped by the assistant.",
       "Engine warnings and rule explanations are in English and Arabic.",
     ],

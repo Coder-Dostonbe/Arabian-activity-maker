@@ -4,13 +4,17 @@ An Arabic morphology and grammar platform built around a deterministic,
 framework-independent linguistic engine. Web, desktop and offline clients,
 the knowledge base and the AI layer will be built on top of it in later phases.
 
+CI (`.github/workflows/ci.yml`, Windows) runs the engine and sidecar tests, the
+frontend build and `cargo check` on every push to `main` and every pull request.
+
 ## Status
 
 | Phase | Scope | Status |
 | ----- | ----- | ------ |
 | 1 — Foundation | Repo layout, engine package, normalisation, first dual rules, tests | **Done** (pending review, AM-1) |
 | 2 — Linguistic engine | Declension, sound + broken plurals, exceptions, governor-based case | **Done** (pending review, AM-2) |
-| 8 (early) — Desktop | Windows classroom app (Tauri + Vue): timed activity, timed test, word sets from Word/Excel/txt with Arabic / Uzbek sorting and plural / dual rows, Arabic ⇄ Uzbek drills, day / night mode, top navigation bar, bundled Noto Sans (Latin / Cyrillic / Arabic) typeface, engine + optional Claude assistant, UZ/AR/RU/EN interface | **Preview v0.4.0** — see `desktop/` |
+| Fix plan | Correctness fixes (clitics, five nouns, variants, new governors), lexicon tooling, reverse analysis | **Engine v0.3.0** |
+| 8 (early) — Desktop | Windows classroom app (Tauri + Vue): timed activity, timed test, word sets from Word/Excel/txt with Arabic / Uzbek sorting and plural / dual rows, Arabic ⇄ Uzbek drills, day / night mode, top navigation bar, bundled Noto Sans (Latin / Cyrillic / Arabic) typeface, engine + optional Claude assistant, UZ/AR/RU/EN interface | **Preview v0.5.0** — see `desktop/` |
 | 3–10 | Database, API, web frontend, documents, AI agent, sync, education, production | Not started |
 
 ## Repository layout
@@ -32,15 +36,19 @@ arabmorph-ai/
 │   │   ├── dual.py             # dual generation
 │   │   ├── plural.py           # sound masculine / sound feminine / broken plurals
 │   │   ├── context.py          # case from the preceding governor
+│   │   ├── function_words.py   # governors, particles and clitics
+│   │   ├── analyze.py          # reverse analysis: written form → singular, number, case, state
 │   │   ├── generate.py         # unified generate() / paradigm()
 │   │   ├── rules.py            # rule registry (AR/EN explanations, references)
-│   │   ├── lexicon.py          # lexicon interface + seed loader
+│   │   ├── lexicon.py          # lexicon interface; loads every data/lexicon_*.json
 │   │   ├── types.py            # enums and result types
 │   │   └── data/lexicon_seed.json
+│   ├── scripts/                # import_lexicon.py, bench_lexicon.py
 │   └── tests/
 │       ├── corpus/             # curated corpora: dual, plural, singular, context
 │       └── test_*.py
 ├── desktop/                    # Windows app: Tauri + Vue UI, Python stdio sidecar
+├── .github/workflows/ci.yml    # Windows CI
 ├── backend/   frontend/         # created in later phases
 ```
 
@@ -80,6 +88,10 @@ arabmorph plural كاتب --kind sound_masculine       # كاتبون — source
 arabmorph singular أحمد --case genitive            # أَحْمَدَ  (diptote)
 arabmorph plural مدرسة --after في --definite       # case from context: الْمَدَارِسِ / الْمُدَرِّسَاتِ
 arabmorph plural صحراء --all                        # 3 cases × indefinite/definite/construct
+arabmorph dual أب                                   # أَبَوَانِ  (five nouns)
+arabmorph plural كتاب --after بعد                   # annexed adverb → genitive
+arabmorph dual بالكتاب                              # error: the particle بـ is joined to the noun
+arabmorph analyze كتب                              # reverse: singular كتاب, broken plural
 ```
 
 ```python
@@ -93,7 +105,14 @@ r.forms[0].vocalized        # 'الْمُعَلِّمَاتِ' — accusative so
 Each form records the rule(s) applied, its source (`rule`, `lexicon`,
 `heuristic`, `asserted`), a confidence value, the condition it depends on,
 any warnings, and for plurals the plural kind and diptote status. The result
-also carries assumptions and errors.
+also carries assumptions, errors and "did you mean" suggestions (never
+applied automatically).
+
+Input is folded before parsing: Arabic presentation forms (NFKC), Persian
+ک / ی and Quranic marks become their standard letters, with a warning. A word
+that is already the dual or plural of a lexicon word is refused, and a word
+with a joined particle (بالكتاب، وكتاب، للطالب) gets an error that names the
+particle and the noun to enter instead.
 
 ## Engine design decisions
 
@@ -164,16 +183,31 @@ diptote (genitive with fatha, kasra once it has ال or is construct), manqus
 ### Context (Phase 2)
 
 The case comes from the word directly before the noun: prepositions →
-genitive, إنّ and its sisters → accusative, كان and its sisters → nominative
-(stated as an assumption). Undiacritized إن/أن/كأن/لكن are refused, because
-without shadda they may be different particles.
+genitive (حتى، منذ، رب، خلا، عدا… too, with a warning about their other
+uses), always-annexed adverbs (بعد، قبل، عند، فوق، تحت…) → genitive, إنّ and
+its sisters → accusative, لا النافية للجنس → accusative, كان and its sisters
+(also يكون، ما زال…) → nominative (stated as an assumption); forms with an
+attached subject (كانوا، أصبحوا…) → accusative, the predicate. Undiacritized
+إن/أن/كأن/لكن are refused, because without shadda they may be different
+particles; the hamza-less ان gets suggestions instead.
+
+### Five nouns
+
+أب، أخ، حم take waw in the dual (أبوان) and the long vowel in construct
+(أبو / أبا / أبي).
+
+### Reverse analysis
+
+`analyze(word)` lists the singulars a written form can come from, with
+number, case, state and plural kind. Every reading is confirmed by
+generating it again; see [`engine/README.md`](engine/README.md).
 
 Definite (sun/moon letter, and kasra on the lam before hamzat al-waṣl),
 indefinite and construct states are supported throughout.
 
 ## Known limitations (honest scope)
 
-- **Nothing is specialist-reviewed yet.** All rules and all 41 seed lexicon
+- **Nothing is specialist-reviewed yet.** All 48 rules and all 46 seed lexicon
   entries are marked `pending_specialist_review` / `verified: false`. The
   orthography citations still need confirming.
 - **Context is one word deep.** Only the immediately preceding governor is
@@ -187,11 +221,18 @@ indefinite and construct states are supported throughout.
   (mentioned in a warning, not generated).
 - **Words without a lexicon entry are assumed fully declinable** (not
   diptote), with a warning.
-- **Not covered:** the five nouns (أب، أخ…), words with clitics (بالكتاب،
-  وكتاب، كتابه), loanwords ending in ا (سينما), the dual of compound names,
-  nouns that have no dual, and non-genuine iḍāfa with ال (الضاربا زيدٍ).
+- **The lexicon is small.** No external dictionary has been imported yet;
+  the import script waits for a source whose license is confirmed.
+- **Not covered:** attached pronouns (كتابه is read as a word ending in ه),
+  loanwords ending in ا (سينما), the dual of compound names, nouns that have
+  no dual, and non-genuine iḍāfa with ال (الضاربا زيدٍ). Joined particles
+  (بالكتاب، وكتاب) are refused, not analysed.
 - **Confidence values are hand-set**, not calibrated. They rank readings;
   they are not probabilities.
+
+## License
+
+No license has been chosen yet, so all rights are reserved for now.
 
 ## Next action
 

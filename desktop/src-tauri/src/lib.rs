@@ -182,7 +182,10 @@ fn open_log_folder(log: State<'_, Arc<Log>>) -> Result<(), String> {
 }
 
 pub fn run() {
-    let app = tauri::Builder::default()
+    let builder = tauri::Builder::default();
+    #[cfg(feature = "updater")]
+    let builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
+    let app = builder
         .manage(Engine::default())
         .setup(|app| {
             let log_dir = app.path().app_log_dir()?;

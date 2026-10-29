@@ -255,7 +255,7 @@ export const uz = {
     limitsTitle: "Cheklovlar",
     limits: [
       "Qoidalar va lug'at yozuvlari hali arab tili mutaxassisi tomonidan tekshirilmagan; yaratilgan savollarni darsdan oldin ko'rib chiqing.",
-      "Lug'atda 41 ta so'z bor; lug'atda yo'q so'zlar uchun siniq ko'plik yasalmaydi.",
+      "Ilova lug'atida 46 ta so'z bor (siz qo'shganlardan tashqari); lug'atda yo'q so'zlar uchun siniq ko'plik yasalmaydi.",
       "Bir nechta o'qilishi bor so'zlar (masalan, مدرسة) yordamchi tomonidan o'tkazib yuboriladi.",
       "Dvigatel ogohlantirishlari va qoida izohlari ingliz va arab tillarida.",
     ],

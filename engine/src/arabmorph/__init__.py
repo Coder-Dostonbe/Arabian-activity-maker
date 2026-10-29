@@ -14,7 +14,7 @@ from .rules import RULES, get_rule
 from .singular import generate_singular
 from .types import Case, FinalClass, GeneratedForm, GenerationResult, Number, PluralKind, Source, Status
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "Analysis", "AnalysisResult", "analyze",
