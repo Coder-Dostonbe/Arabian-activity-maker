@@ -66,6 +66,16 @@ def test_bad_params_are_rejected(params, needle):
     assert not r["ok"] and needle in r["error"]
 
 
+def test_internal_error_logs_the_traceback_but_replies_generically(monkeypatch, capsys):
+    def broken(_params):
+        raise KeyError("secret detail")
+    monkeypatch.setitem(svc.OPS, "version", broken)
+    r = call("version")
+    assert r == {"id": 7, "ok": False, "error": "internal error: KeyError"}
+    err = capsys.readouterr().err
+    assert "Traceback" in err and "secret detail" in err and "'version'" in err
+
+
 def test_malformed_requests():
     assert not svc.handle("not json")["ok"]
     assert not svc.handle("[1,2]")["ok"]

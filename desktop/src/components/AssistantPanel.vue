@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { ClaudeError, draftItems, MAX_DRAFT_ITEMS } from "../claude";
+import { computed, onMounted, ref } from "vue";
+import { isTauri } from "@tauri-apps/api/core";
+import { ClaudeError, draftItems, MAX_DRAFT_ITEMS, savedKey } from "../claude";
 import { engine, type BuildResult, type CaseName, type NumberName, type StateName } from "../engine";
 import { useI18n } from "../i18n";
 import { useEngineStore } from "../stores/engine";
 import { useSetsStore, type WordSet } from "../stores/sets";
-import { persisted, readStorage, writeStorage } from "../util";
+import { persisted } from "../util";
 
 // Generates rows for one set: offline with the engine, or online with Claude.
 const props = defineProps<{ set: WordSet }>();
@@ -14,7 +15,6 @@ const sets = useSetsStore();
 const store = useEngineStore();
 
 const MAX_WORDS = 200;
-const KEY_STORE = "arabmorph.claude.key";
 
 const tab = persisted<"engine" | "claude">("arabmorph.assistant.tab", "engine");
 
@@ -72,23 +72,43 @@ async function runEngine() {
 }
 
 // --- Claude ---
-const savedKey = readStorage<string>(KEY_STORE, "");
-const apiKey = ref(savedKey);
-const remember = ref(!!savedKey);
+// The key is kept by the Rust shell in Windows Credential Manager; here we only learn whether one is saved.
+const apiKey = ref("");
+const hasSavedKey = ref(false);
+const remember = ref(false);
 const topic = ref("");
 const count = ref(10);
+const canAsk = computed(() => (!!apiKey.value.trim() || hasSavedKey.value) && !!topic.value.trim() && isTauri());
+
+onMounted(async () => {
+  if (!isTauri()) return;
+  try {
+    hasSavedKey.value = remember.value = await savedKey.exists();
+  } catch {
+    /* Credential Manager unavailable: the key can still be typed each time */
+  }
+});
+
+async function forgetKey() {
+  try {
+    await savedKey.forget();
+    hasSavedKey.value = remember.value = false;
+  } catch (e) {
+    failure.value = (e as { message?: string })?.message ?? String(e);
+  }
+}
 
 async function runClaude() {
-  const key = apiKey.value.trim();
-  if (!key || !topic.value.trim()) return;
-  if (remember.value) writeStorage(KEY_STORE, key);
-  else writeStorage(KEY_STORE, "");
+  const key = apiKey.value.trim() || null;
+  if (!canAsk.value) return;
   busy.value = true;
   message.value = failure.value = null;
   skipped.value = [];
   try {
     const n = Math.min(MAX_DRAFT_ITEMS, Math.max(1, Math.round(count.value || 10)));
-    const items = await draftItems(key, topic.value.trim(), n, m.value.claudeLanguage);
+    const items = await draftItems(key, remember.value, topic.value.trim(), n, m.value.claudeLanguage);
+    hasSavedKey.value = remember.value && (hasSavedKey.value || !!key);
+    if (key && remember.value) apiKey.value = "";
     sets.append(props.set.id, items, "claude");
     message.value = m.value.gen.added(items.length);
   } catch (e) {
@@ -156,10 +176,11 @@ async function runClaude() {
       <p class="muted">{{ m.gen.claudeIntro }}</p>
       <label class="field">
         <span class="small muted">{{ m.gen.apiKey }}</span>
-        <input v-model="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…" />
+        <input v-model="apiKey" type="password" autocomplete="off" spellcheck="false" :placeholder="hasSavedKey ? m.gen.keySaved : 'sk-ant-…'" />
       </label>
       <label class="check"><input v-model="remember" type="checkbox" /> {{ m.gen.remember }}</label>
       <p v-if="remember" class="small muted">{{ m.gen.rememberHint }}</p>
+      <div v-if="hasSavedKey"><button type="button" class="small-btn" @click="forgetKey">{{ m.gen.forgetKey }}</button></div>
       <label class="field">
         <span class="small muted">{{ m.gen.topic }}</span>
         <textarea v-model="topic" rows="3" dir="auto" :placeholder="m.gen.topicPlaceholder" />
@@ -169,7 +190,7 @@ async function runClaude() {
         <input v-model.number="count" type="number" min="1" :max="MAX_DRAFT_ITEMS" class="num" />
       </label>
       <div>
-        <button class="primary" type="submit" :disabled="busy || !apiKey.trim() || !topic.trim()">
+        <button class="primary" type="submit" :disabled="busy || !canAsk">
           {{ busy ? m.gen.generating : m.gen.generate }}
         </button>
       </div>

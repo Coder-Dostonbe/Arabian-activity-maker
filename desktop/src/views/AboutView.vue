@@ -1,9 +1,21 @@
 <script setup lang="ts">
+import { ref } from "vue";
+import { invoke, isTauri } from "@tauri-apps/api/core";
 import { useI18n } from "../i18n";
 import { useEngineStore } from "../stores/engine";
 
 const store = useEngineStore();
 const m = useI18n();
+const logError = ref<string | null>(null);
+
+async function openLogs() {
+  logError.value = null;
+  try {
+    await invoke("open_log_folder");
+  } catch (e) {
+    logError.value = String(e);
+  }
+}
 </script>
 
 <template>
@@ -15,6 +27,9 @@ const m = useI18n();
         {{ m.about.engine(store.version.engine, store.version.rules, store.version.lexicon_entries, store.version.lexicon_sources.join(", ")) }}
       </p>
       <p>{{ m.about.privacy }}</p>
+      <p class="small muted">{{ m.about.logsHint }}</p>
+      <div><button :disabled="!isTauri()" @click="openLogs">{{ m.about.openLogs }}</button></div>
+      <div v-if="logError" class="notice err">{{ logError }}</div>
     </div>
     <div class="panel">
       <h2>{{ m.about.whatTitle }}</h2>

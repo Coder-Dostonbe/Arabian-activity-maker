@@ -5,6 +5,8 @@ import { engine, EngineError } from "../engine";
 import { useI18n } from "../i18n";
 import { useEngineStore } from "../stores/engine";
 import { useSetsStore, type Item } from "../stores/sets";
+import { recovered } from "../storage";
+import { invoke, isTauri } from "@tauri-apps/api/core";
 import { arClass, textDir, fileToBase64, persisted } from "../util";
 
 const m = useI18n();
@@ -14,6 +16,7 @@ const store = useEngineStore();
 const selectedId = persisted<string | null>("arabmorph.sets.selected", null);
 const selected = computed(() => sets.get(selectedId.value));
 const fileInput = ref<HTMLInputElement | null>(null);
+const backupInput = ref<HTMLInputElement | null>(null);
 const importing = ref(false);
 const notices = ref<{ kind: "ok" | "warn" | "err"; text: string }[]>([]);
 const confirmDelete = ref(false);
@@ -48,6 +51,31 @@ async function onFile(e: Event) {
   } finally {
     importing.value = false;
   }
+}
+
+async function exportAll() {
+  notices.value = [];
+  try {
+    const path = await invoke<string>("backup_export", { contents: sets.exportBackup() });
+    notices.value.push({ kind: "ok", text: m.value.sets.exported(path) });
+  } catch (err) {
+    notices.value.push({ kind: "err", text: String(err) });
+  }
+}
+
+async function onBackup(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = "";
+  if (!file) return;
+  notices.value = [];
+  const count = file.size > 32 * 1024 * 1024 ? null : sets.importBackup(await file.text());
+  if (count === null) {
+    notices.value.push({ kind: "err", text: m.value.sets.backupInvalid });
+    return;
+  }
+  selectedId.value = sets.sets[0]?.id ?? null;
+  notices.value.push({ kind: "ok", text: m.value.sets.restored(count) });
 }
 
 function newSet() {
@@ -92,7 +120,12 @@ function setOptions(item: Item, text: string) {
       </button>
       <input ref="fileInput" type="file" hidden accept=".docx,.xlsx,.xlsm,.txt,.csv,.tsv" @change="onFile" />
       <button @click="newSet">{{ m.sets.newSet }}</button>
+      <span class="spacer" />
+      <button :disabled="!isTauri() || !sets.sets.length" @click="exportAll">{{ m.sets.exportAll }}</button>
+      <button @click="backupInput?.click()">{{ m.sets.importBackup }}</button>
+      <input ref="backupInput" type="file" hidden accept=".json,application/json" @change="onBackup" />
     </div>
+    <div v-if="recovered" class="notice warn">{{ m.sets.recovered }}</div>
     <div v-for="(n, i) in notices" :key="i" class="notice" :class="n.kind">{{ n.text }}</div>
     <div v-if="sets.saveFailed" class="notice err">{{ m.sets.saveFailed }}</div>
 

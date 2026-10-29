@@ -125,6 +125,12 @@ export const uz = {
     uncertain: "Tekshiring",
     imported: (rows: number, sets: number) => `${rows} ta qator yuklandi (${sets} ta to'plam).`,
     saveFailed: "To'plamlarni saqlab bo'lmadi: kompyuter xotirasiga yozish imkoni yo'q.",
+    exportAll: "Hammasini eksport qilish",
+    importBackup: "Zaxiradan tiklash",
+    exported: (path: string) => `Barcha to'plamlar va sozlamalar saqlandi: ${path}`,
+    restored: (n: number) => `${n} ta to'plam tiklandi. Sozlamalar ilova qayta ochilganda qo'llanadi.`,
+    backupInvalid: "Bu fayl ArabMorph zaxira nusxasi emas yoki buzilgan.",
+    recovered: "Saqlangan ma'lumotlar fayli o'qilmadi, shuning uchun oxirgi zaxira nusxa yuklandi.",
     errors: {
       unsupported_format: "Bu fayl turi qo'llab-quvvatlanmaydi. .docx, .xlsx, .txt yoki .csv fayl tanlang.",
       legacy_format: "Eski .doc / .xls formati o'qilmaydi. Faylni Word yoki Excel'da .docx / .xlsx sifatida saqlang.",
@@ -173,7 +179,9 @@ export const uz = {
       "Claude berilgan mavzu bo'yicha yangi savollar tuzadi. Buning uchun internet va Anthropic API kaliti kerak. Yaratilgan qatorlar tasdiqlanmagan holda qo'shiladi — ularni albatta tekshiring.",
     apiKey: "Anthropic API kaliti",
     remember: "Kalitni shu kompyuterda eslab qolish",
-    rememberHint: "Kalit faqat shu kompyuterda, ilova ma'lumotlari ichida ochiq holda saqlanadi.",
+    rememberHint: "Kalit Windows hisob ma'lumotlari omborida (Credential Manager) saqlanadi va faqat Anthropic'ga so'rov yuborishda ishlatiladi.",
+    keySaved: "Saqlangan kalit ishlatiladi",
+    forgetKey: "Saqlangan kalitni o'chirish",
     topic: "Mavzu yoki ko'rsatma",
     topicPlaceholder: "Masalan: maqsur otlarning ikkiligi bo'yicha savollar",
     count: "Savollar soni",
@@ -228,6 +236,8 @@ export const uz = {
     heading: "ArabMorph AI — arab tili darslari uchun",
     engine: (v: string, rules: number, words: number, sources: string) =>
       `Dvigatel v${v} · ${rules} qoida · ${words} lug'at yozuvi (${sources})`,
+    openLogs: "Jurnal papkasini ochish",
+    logsHint: "Xatolik bo'lsa, dvigatel jurnali (arabmorph-service.log) shu papkada bo'ladi.",
     privacy:
       "Mashg'ulot, test, fayllarni o'qish va dvigatel yordamchisi to'liq shu kompyuterda ishlaydi va internetga ulanmaydi. Internet faqat siz «Claude» yordamchisidan foydalanganingizda, o'zingizning API kalitingiz bilan ishlatiladi.",
     whatTitle: "Nimalar bor",

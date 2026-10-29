@@ -17,7 +17,7 @@ and English; the language is switched in the UI and remembered on the computer.
 The top navigation bar switches between **day**, **night** and **auto** (follows Windows) appearance.
 The app version and the offline engine version (with rule / word counts) are shown in the footer. All text uses one bundled typeface — Noto Sans with its Arabic sibling — so it looks the same and works offline on every computer.
 
-Sets and preferences are stored in the app's local storage on this computer.
+Sets and preferences are saved as files in the app's data folder on this computer (see *Saved data* below).
 
 ## File format
 
@@ -59,8 +59,9 @@ desktop/
 │   ├── views/              # Activity, Test, Sets, Lexicon, Rules, About
 │   ├── components/         # SetPicker, AssistantPanel
 │   ├── composables/        # drift-free pausable countdown
-│   ├── stores/             # engine status, word sets (local storage)
-│   └── claude.ts           # optional Claude drafting
+│   ├── stores/             # engine status, word sets
+│   ├── storage.ts          # saved files (via the Rust shell), migration from local storage
+│   └── claude.ts           # optional Claude drafting (request made in Rust)
 ├── sidecar/                # Python stdio service wrapping the engine
 │   ├── importers.py        # .txt / .csv / .docx / .xlsx reader (standard library only)
 │   ├── vocab.py            # Arabic / Uzbek sorting, plural and dual rows
@@ -68,22 +69,42 @@ desktop/
 │   └── tests/
 ├── samples/                # namuna.txt / .xlsx / .docx
 ├── scripts/                # build-sidecar.ps1, make_samples.py, office_writer.py
-└── src-tauri/              # Rust shell: spawns the service, exposes `engine_call`
+└── src-tauri/              # Rust shell: service + timeouts, log, data files, API key, Claude request
 ```
 
 ## How it works
 
 The Rust shell starts `arabmorph-service.exe` (the engine frozen with
-PyInstaller) as a hidden child process. The two talk newline-delimited JSON
-over stdin/stdout; no network port is opened. The service validates every
-request itself rather than trusting the UI, and reads Office files with the
-standard library only (zip + XML, sizes capped, DOCTYPE refused). If the
-service dies, the shell restarts it once on the next request.
+PyInstaller `--onedir`, bundled as the `arabmorph-service/` resource folder) as a
+hidden child process. The two talk newline-delimited JSON over stdin/stdout; no
+network port is opened. The service validates every request itself rather than
+trusting the UI, and reads Office files with the standard library only (zip + XML,
+sizes capped, DOCTYPE refused).
 
-The only network access is the optional Claude assistant: the webview calls
-`https://api.anthropic.com` directly (allowed by the CSP `connect-src`) with the
-key the teacher enters. The key is kept only if "remember" is ticked, in plain
-form in the app's local storage.
+Each request has a timeout (15 s, 60 s for a file import). On a timeout the shell
+kills the service and returns an error; the next request starts a fresh one. If
+the service dies, the shell restarts it once and retries. The service's stderr —
+including the full traceback of any internal error, whose reply to the UI stays
+generic — goes to `arabmorph-service.log` (rotated at 1 MB, three old files kept)
+in `%LOCALAPPDATA%\ai.arabmorph.desktop\logs`; **About → Open log folder** opens it.
+
+**Saved data.** Word sets and settings are JSON files in
+`%APPDATA%\ai.arabmorph.desktop\data` (`sets.json`, `settings.json`). Each save is
+debounced (500 ms), written to a temporary file and renamed over the old one, and
+the previous version is kept in `data\backups` (the last 5). If a file cannot be
+read, the newest readable backup is loaded and the Word sets page says so. On
+the first start of this version, data kept by older versions in the webview's
+local storage is copied over (the old copy is left in place). **Word sets →
+Export all** writes one `ArabMorph-backup-<time>.json` with every set and setting
+to the Downloads folder; **Import backup** restores such a file (sets with the
+same id are replaced, others are added).
+
+The only network access is the optional Claude assistant. The request is made by
+the Rust shell (`src-tauri/src/claude.rs`), so the webview's CSP allows no
+external host at all. If "remember" is ticked, the API key is stored in Windows
+Credential Manager (entry "ArabMorph AI"); the key is never returned to the
+webview. A key that an older version saved in local storage is moved there on
+the first start.
 
 The installer includes the service, so end users don't need Python.
 
@@ -99,7 +120,7 @@ The installer includes the service, so end users don't need Python.
 ```powershell
 cd desktop
 npm install
-npm run sidecar          # freeze the engine service (PyInstaller) and smoke-test it
+npm run sidecar          # freeze the engine service (PyInstaller --onedir) and smoke-test it
 npx tauri build          # → src-tauri/target/release/bundle/nsis/ArabMorph AI_0.4.0_x64-setup.exe
 ```
 
@@ -110,6 +131,7 @@ again whenever the engine or the sidecar changes.
 
 ```powershell
 ..\.venv\Scripts\python -m pytest sidecar/tests   # service protocol, file import, generated items
+cargo test --manifest-path src-tauri/Cargo.toml    # timeouts, log rotation, atomic saves and backups
 npm run build                                      # vue-tsc type check (all four languages) + production build
 ```
 

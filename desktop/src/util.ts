@@ -1,4 +1,5 @@
 import { ref, watch, type Ref } from "vue";
+import { getSetting, setSetting } from "./storage";
 
 export function newId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
@@ -29,23 +30,13 @@ export function formatClock(ms: number): string {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 }
 
-// localStorage can be missing or throw (private profile, blocked storage); the app must still work.
+// Settings live in the app's settings file (see storage.ts), loaded before the UI starts.
 export function readStorage<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw === null ? fallback : (JSON.parse(raw) as T);
-  } catch {
-    return fallback;
-  }
+  return getSetting(key, fallback);
 }
 
-export function writeStorage(key: string, value: unknown): boolean {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-    return true;
-  } catch {
-    return false;
-  }
+export function writeStorage(key: string, value: unknown) {
+  setSetting(key, value);
 }
 
 /** A ref that remembers its value between runs (per-user preference). */

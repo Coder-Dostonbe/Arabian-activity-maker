@@ -16,6 +16,7 @@ import base64
 import binascii
 import json
 import sys
+import traceback
 
 import arabmorph
 from arabmorph import (
@@ -202,6 +203,11 @@ def handle(line: str) -> dict:
     except BadRequest as exc:
         return {"id": rid, "ok": False, "error": str(exc), "code": exc.code}
     except Exception as exc:  # never crash the service on one bad request
+        # The full traceback goes to stderr, which the desktop shell writes to its log file;
+        # the reply stays generic.
+        print(f"internal error in op {request.get('op')!r} (id {rid!r}):", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
+        sys.stderr.flush()
         return {"id": rid, "ok": False, "error": f"internal error: {type(exc).__name__}"}
 
 

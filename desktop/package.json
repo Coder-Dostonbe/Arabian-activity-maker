@@ -10,7 +10,6 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "0.133.0",
     "@fontsource-variable/noto-sans": "^5.3.0",
     "@fontsource-variable/noto-sans-arabic": "^5.3.0",
     "@tauri-apps/api": "^2.12.4",
