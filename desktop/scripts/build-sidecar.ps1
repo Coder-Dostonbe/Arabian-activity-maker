@@ -15,7 +15,7 @@ if ($LASTEXITCODE -ne 0) { & $python -m pip install -q "pyinstaller>=6" }
     --noconfirm --clean --onefile --console `
     --name "arabmorph-service-$triple" `
     --paths (Join-Path $root "engine\src") `
-    --add-data "$(Join-Path $root 'engine\src\arabmorph\data\lexicon_seed.json');arabmorph\data" `
+    --add-data "$(Join-Path $root 'engine\src\arabmorph\data\lexicon_*.json');arabmorph\data" `
     --distpath $bin --workpath $work --specpath $work `
     (Join-Path $root "desktop\sidecar\arabmorph_service.py")
 if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed" }

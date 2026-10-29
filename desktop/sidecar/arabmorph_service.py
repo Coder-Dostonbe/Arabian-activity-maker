@@ -23,6 +23,7 @@ from arabmorph import (
     Case,
     Number,
     PluralKind,
+    analyze,
     generate,
     generate_in_context,
     paradigm,
@@ -112,6 +113,10 @@ def op_paradigm(params: dict) -> dict:
     return {state: {c: r.to_dict() for c, r in row.items()} for state, row in table.items()}
 
 
+def op_analyze(params: dict) -> dict:
+    return analyze(_word(params)).to_dict()
+
+
 def op_rules(_params: dict) -> list:
     return [r.to_dict() for r in RULES.values()]
 
@@ -169,6 +174,7 @@ OPS = {
     "version": op_version,
     "generate": op_generate,
     "paradigm": op_paradigm,
+    "analyze": op_analyze,
     "rules": op_rules,
     "lexicon": op_lexicon,
     "import_file": op_import_file,

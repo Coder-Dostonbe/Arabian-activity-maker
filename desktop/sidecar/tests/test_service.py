@@ -31,6 +31,19 @@ def test_paradigm_has_three_states():
     assert set(r["result"]) == {"indefinite", "definite", "construct"}
 
 
+def test_analyze_returns_the_singular():
+    r = call("analyze", word="كتب")
+    assert r["ok"] and r["result"]["status"] == "ok"
+    a = r["result"]["analyses"][0]
+    assert (a["singular"], a["number"], a["kind"]) == ("كِتَاب", "plural", "broken")
+
+
+@pytest.mark.parametrize("params,needle", [({}, "'word' is required"), ({"word": "ك" * 100}, "at most")])
+def test_analyze_validates_the_word(params, needle):
+    r = call("analyze", **params)
+    assert not r["ok"] and needle in r["error"]
+
+
 def test_rules_and_lexicon_and_version():
     assert len(call("rules")["result"]) == len(svc.RULES)
     lex = call("lexicon")["result"]

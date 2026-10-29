@@ -5,6 +5,7 @@
     python -m arabmorph singular أحمد --case genitive
     python -m arabmorph plural صحراء --all
     python -m arabmorph plural مدرسة --after في --definite     # case from the preceding word
+    python -m arabmorph analyze كتب                            # which singular, number, case, state
 """
 
 from __future__ import annotations
@@ -13,6 +14,7 @@ import argparse
 import json
 import sys
 
+from .analyze import analyze
 from .context import generate_in_context
 from .generate import generate, paradigm
 from .types import Case, Number, PluralKind
@@ -34,8 +36,15 @@ def main(argv=None) -> int:
         if number is Number.PLURAL:
             p.add_argument("--kind", choices=[k.value for k in PluralKind], default=None,
                            help="only this plural type; for words without a lexicon entry this asserts it applies")
+    p = sub.add_parser("analyze", help="candidate singulars of a dual, plural or declined form")
+    p.add_argument("word")
     args = parser.parse_args(argv)
 
+    if args.number == "analyze":
+        out = analyze(args.word).to_dict()
+        json.dump(out, sys.stdout, ensure_ascii=False, indent=2)
+        sys.stdout.write("\n")
+        return 0
     number = Number(args.number)
     kind = PluralKind(args.kind) if getattr(args, "kind", None) else None
     if args.after:

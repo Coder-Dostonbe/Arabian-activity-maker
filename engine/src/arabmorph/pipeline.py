@@ -34,7 +34,7 @@ CONSTRUCT_ONLY = {
 
 @lru_cache(maxsize=1)
 def default_lexicon() -> Lexicon:
-    return Lexicon.seed()
+    return Lexicon.bundled()
 
 
 @dataclass
@@ -221,6 +221,9 @@ def _five_noun_construct(key: str, lexicon: Lexicon) -> LexiconEntry | None:
 
 def _singular_candidates(key: str) -> list[tuple[str, str]]:
     """(what, singular spelling) pairs that `key` could be the dual or plural of."""
+    if key.endswith("آت") and len(key) >= 4:
+        # أ + ات is written آت: منشآت ← منشأة، مكافآت ← مكافأة
+        return [("plural", key[:-2] + "أ" + TEH_MARBUTA), ("plural", key[:-2] + "أ")]
     ending = key[-2:]
     if ending in DUAL_ENDINGS:
         what = "dual"
@@ -242,7 +245,7 @@ def _singular_candidates(key: str) -> list[tuple[str, str]]:
         if last in "وي":
             found.append(base[:-1] + "ا" + TEH_MARBUTA)  # صلوات ← صلاة، فتيات ← فتاة
     if last == "ي":
-        found += [base[:-1] + ALEF_MAQSURA]              # مستشفيان ← مستشفى
+        found += [base[:-1] + ALEF_MAQSURA, base[:-1] + "ا"]   # مستشفيان ← مستشفى، دنييان ← دنيا
     if last == "و":
         found += [base[:-1] + "ا", base[:-1] + "ء", base[:-1]]   # عصوان، صحراوان، أبوان
     if last == "ئ":

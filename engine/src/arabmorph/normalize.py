@@ -58,13 +58,17 @@ class NormalizedText:
         return self.options.lossy
 
 
-_ALEF_MAP = {ALEF_HAMZA_ABOVE: ALEF, ALEF_HAMZA_BELOW: ALEF, ALEF_MADDA: ALEF, ALEF_WASLA: ALEF}
+_ALEF_MAP = str.maketrans({ALEF_HAMZA_ABOVE: ALEF, ALEF_HAMZA_BELOW: ALEF, ALEF_MADDA: ALEF, ALEF_WASLA: ALEF})
+_STRIP_MARKS = str.maketrans(dict.fromkeys(VOCALIZATION_MARKS))
 
 
 def strip_diacritics(text: str) -> str:
     """Remove vocalisation marks only. Hamza-bearing letters are kept intact."""
-    text = unicodedata.normalize("NFC", text)
-    return "".join(ch for ch in text if ch not in VOCALIZATION_MARKS)
+    return _nfc(text).translate(_STRIP_MARKS)
+
+
+def _nfc(text: str) -> str:
+    return text if unicodedata.is_normalized("NFC", text) else unicodedata.normalize("NFC", text)
 
 
 def has_diacritics(text: str) -> bool:
@@ -78,7 +82,7 @@ def normalize(text: str, options: NormalizationOptions = NormalizationOptions())
     if options.strip_diacritics:
         out = strip_diacritics(out)
     if options.unify_alef:
-        out = "".join(_ALEF_MAP.get(ch, ch) for ch in out)
+        out = out.translate(_ALEF_MAP)
     if options.alef_maqsura_to_yeh:
         out = out.replace(ALEF_MAQSURA, YEH)
     if options.teh_marbuta_to_heh:
@@ -93,8 +97,13 @@ LOSSY_OPTIONS = NormalizationOptions(
 )
 
 
+# The lossy options as one table: every step maps single characters, so they combine.
+_LOSSY_TABLE = {**_STRIP_MARKS, **_ALEF_MAP, ord(TATWEEL): None, ord(ALEF_MAQSURA): YEH, ord(TEH_MARBUTA): HEH}
+
+
 def lossy_key(text: str) -> str:
-    return normalize(text, LOSSY_OPTIONS).normalized
+    """normalize(text, LOSSY_OPTIONS).normalized, fast: it keys every lexicon entry."""
+    return _nfc(text).translate(_LOSSY_TABLE)
 
 
 @dataclass(frozen=True)

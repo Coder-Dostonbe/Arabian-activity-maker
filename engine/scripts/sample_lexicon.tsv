@@ -1,0 +1,10 @@
+# Hand-made sample for testing the importer; not shipped with the engine.
+id	lemma	pos	gender	final_class	alif_origin	hamza_type	flags	plurals	gloss_en
+1	نَجْم	noun	masculine	sound	-	-	-	broken:نُجُوم	star
+2	مِفْتَاح	noun	masculine	sound	-	-	-	broken:مَفَاتِيح!diptote	key
+3	حَدِيقَة	noun	feminine	sound	-	-	-	broken:حَدَائِق!diptote	garden
+4	مُسَافِر	noun	masculine	sound	-	-	-	sound_masculine	traveller
+5	سَيَّارَة	noun	feminine	sound	-	-	-	sound_feminine	car
+6	رَاعِي	noun	masculine	manqus	-	-	-	broken:رُعَاة	shepherd
+7	مَقْهَى	noun	masculine	maqsur	-	-	-	broken:مَقَاهِي!diptote	café
+8	خَضْرَاء	adjective	feminine	mamdud	-	feminine	diptote	broken:خُضْر	green (f.)
